@@ -1,0 +1,6 @@
+{
+  "name": "EvenKeel Boat Card",
+  "render_readme": true,
+  "filename": "evenkeel-boat-card.js",
+  "homeassistant": "2024.6.0"
+}
