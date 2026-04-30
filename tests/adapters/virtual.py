@@ -28,7 +28,13 @@ from collections import defaultdict
 from typing import Callable
 
 import aiomqtt
-from evenkeel_sim.sensors import LWT_TOPIC, TOPIC_MAP
+from evenkeel_sim.sensors import (
+    AIS_TARGETS_TOPIC,
+    LWT_TOPIC,
+    TOPIC_MAP,
+    AisTarget,
+    serialize_ais_targets,
+)
 
 log = logging.getLogger("evenkeel_tests.virtual")
 
@@ -187,6 +193,28 @@ class VirtualAdapter:
     async def set_anchor(self, armed: bool, distance_m: float = 0.0) -> None:
         await self._publish_field("anchor_armed", armed)
         await self._publish_field("anchor_distance_m", distance_m)
+
+    async def set_ais_targets(self, targets: list[AisTarget]) -> None:
+        """Publish the canonical AIS-targets JSON list.
+
+        Uses the simulator's `serialize_ais_targets()` so the JSON is
+        byte-identical to what `SimulatorPublisher` would emit. Also
+        updates the rollup count + nearest topic via TOPIC_MAP for
+        consistency with what HA's MQTT integration consumes.
+        """
+        assert self._client is not None
+        payload = serialize_ais_targets(targets)
+        await self._client.publish(AIS_TARGETS_TOPIC, payload, retain=True, qos=1)
+        self._latest[AIS_TARGETS_TOPIC] = payload.encode("utf-8")
+        # Mirror the rollup fields the dashboard's iteration cards use.
+        await self._publish_field("ais_targets_in_range", len(targets))
+        if targets:
+            nearest = min(targets, key=lambda t: t.range_nm)
+            await self._publish_field("ais_nearest_name", nearest.name)
+            await self._publish_field("ais_nearest_range_nm", nearest.range_nm)
+        else:
+            await self._publish_field("ais_nearest_name", "")
+            await self._publish_field("ais_nearest_range_nm", 0.0)
 
     async def inject_victron(self, soc: float, current: float, ttg_min: int) -> None:
         await self._publish_field("house_soc", soc)

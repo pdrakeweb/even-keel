@@ -34,6 +34,10 @@ class BoatAdapter(Protocol):
     async def inject_victron(
         self, soc: float, current: float, ttg_min: int
     ) -> None: ...
+    async def set_ais_targets(self, targets: list) -> None:
+        """Publish a list of AIS targets to boat/hunter41/ais/targets."""
+        ...
+
     async def replay_ais(
         self, path: pathlib.Path, rate: float = 1.0
     ) -> None: ...
