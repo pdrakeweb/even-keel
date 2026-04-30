@@ -29,6 +29,13 @@ from dataclasses import dataclass
 from typing import Callable
 
 import aiomqtt
+from evenkeel_sim.sensors import (
+    AIS_TARGETS_TOPIC,
+    LWT_TOPIC,
+    TOPIC_MAP,
+    AisTarget,
+    serialize_ais_targets,
+)
 
 
 @dataclass
@@ -41,13 +48,6 @@ class _Waiter:
     """
     future: "asyncio.Future[bytes]"
     predicate: Callable[[bytes], bool] | None
-from evenkeel_sim.sensors import (
-    AIS_TARGETS_TOPIC,
-    LWT_TOPIC,
-    TOPIC_MAP,
-    AisTarget,
-    serialize_ais_targets,
-)
 
 log = logging.getLogger("evenkeel_tests.virtual")
 
