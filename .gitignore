@@ -1,0 +1,14 @@
+secrets.yaml
+.esphome/
+.pio/
+__pycache__/
+*.pyc
+.venv/
+.env
+tests/.playwright/
+tests/snapshots/**/*-actual.png
+tests/snapshots/**/*-diff.png
+home-assistant/secrets.yaml
+home-assistant/known_devices.yaml
+home-assistant/.storage/
+.DS_Store

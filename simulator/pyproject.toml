@@ -1,0 +1,29 @@
+[project]
+name = "evenkeel-sim"
+version = "0.1.0"
+description = "EvenKeel boat telemetry simulator — publishes realistic MQTT data for UI development without hardware"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aiomqtt>=2.3.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+evenkeel-sim = "evenkeel_sim.__main__:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvenKeel — Mockup 05: Playful Friendly</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Nunito', -apple-system, system-ui, sans-serif; background: #fff8ed; color: #2d3748; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, .display { font-family: 'Fredoka', 'Nunito', sans-serif; letter-spacing: -0.01em; }
+  .card { background: white; border-radius: 24px; box-shadow: 0 4px 12px rgba(68, 187, 164, 0.12); border: 2px solid #ffffff; }
+  .card-accent { border-color: #44bba4; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px; }
+  .wave-anim { animation: wave 4s ease-in-out infinite; }
+  @keyframes wave { 0%,100% { transform: translateX(0) rotate(-1deg); } 50% { transform: translateX(6px) rotate(1deg); } }
+  .bob-anim { animation: bob 3s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .boat-sky { background: linear-gradient(180deg, #bde0fe 0%, #a0d3e8 50%, #8ecae6 100%); }
+  .boat-dusk { background: linear-gradient(180deg, #ffcaa5 0%, #ff9f7a 50%, #ee6c4d 100%); }
+  .boat-night { background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%); }
+  .wobble { animation: wobble 0.6s ease-in-out infinite; }
+  @keyframes wobble { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen p-6">
+
+<header class="max-w-7xl mx-auto mb-10">
+  <div class="flex items-baseline gap-3">
+    <h1 class="text-5xl font-bold text-teal-700">EvenKeel</h1>
+    <span class="text-sm text-gray-500">— Mockup 05 · Playful &amp; Friendly</span>
+  </div>
+  <p class="text-sm text-gray-600 mt-2 max-w-2xl">Rounded, warm, human. An illustrated boat, friendly copy, warm palette. Designed for Kelly — non-technical, welcoming, explicitly uses plain-English status ("Kate's having a great day!" vs. "boatmon_online=true"). Severity still reads clearly through color + scale, but the *default* state of the dashboard isn't scary.</p>
+</header>
+
+<main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+  <!-- LEFT: phone PWA -->
+  <section>
+    <h2 class="text-sm font-bold uppercase tracking-wider text-teal-700 mb-4">📱 Boat-side Phone PWA</h2>
+
+    <div class="space-y-8">
+
+      <!-- State 1: OK -->
+      <div class="w-[360px] mx-auto">
+        <div class="card card-accent overflow-hidden">
+          <!-- Hero illustration -->
+          <div class="boat-sky p-6 relative h-44 overflow-hidden">
+            <svg viewBox="0 0 300 150" class="absolute inset-x-0 top-4 w-full bob-anim">
+              <!-- cloud -->
+              <ellipse cx="50" cy="25" rx="30" ry="10" fill="white" opacity="0.9"/>
+              <ellipse cx="70" cy="25" rx="22" ry="8" fill="white" opacity="0.9"/>
+              <!-- sun -->
+              <circle cx="240" cy="30" r="18" fill="#fde047"/>
+              <!-- boat -->
+              <g class="wave-anim" style="transform-origin:150px 105px">
+                <polygon points="120,95 180,95 170,115 130,115" fill="#f4f4f4" stroke="#2d3748" stroke-width="2"/>
+                <line x1="150" y1="95" x2="150" y2="45" stroke="#8b6f3c" stroke-width="2"/>
+                <polygon points="150,50 175,85 150,85" fill="#ef476f"/>
+                <polygon points="150,55 130,85 150,85" fill="#ffd166"/>
+              </g>
+            </svg>
+            <!-- water -->
+            <svg viewBox="0 0 300 40" class="absolute bottom-0 inset-x-0 w-full">
+              <path d="M0,20 Q30,10 60,20 T120,20 T180,20 T240,20 T300,20 V40 H0 Z" fill="#48b2c9" opacity="0.8"/>
+              <path d="M0,26 Q30,18 60,26 T120,26 T180,26 T240,26 T300,26 V40 H0 Z" fill="#3a8fa0"/>
+            </svg>
+            <div class="absolute bottom-2 left-4 right-4 text-center">
+              <div class="display text-3xl font-bold text-white drop-shadow-lg">Kate is happy!</div>
+            </div>
+          </div>
+
+          <div class="p-5 space-y-4">
+            <div class="flex items-center gap-3 bg-emerald-50 rounded-2xl p-3">
+              <div class="w-10 h-10 bg-emerald-400 rounded-full flex items-center justify-center text-white text-xl">✓</div>
+              <div>
+                <div class="font-bold text-emerald-900">All systems look good</div>
+                <div class="text-xs text-emerald-700">Checked in 23 seconds ago</div>
+              </div>
+            </div>
+
+            <!-- At a glance -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-sky-50 rounded-2xl p-4 text-center">
+                <div class="text-4xl mb-1">⚓</div>
+                <div class="font-bold">Plugged in</div>
+                <div class="text-xs text-gray-500">at Sandusky</div>
+              </div>
+              <div class="bg-emerald-50 rounded-2xl p-4 text-center">
+                <div class="text-4xl mb-1">🔋</div>
+                <div class="font-bold">12.8 volts</div>
+                <div class="text-xs text-gray-500">batteries full</div>
+              </div>
+            </div>
+
+            <div class="bg-white border-2 border-emerald-100 rounded-2xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-semibold">Cozy inside?</span>
+                <span class="text-xs text-gray-400">right now</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div><div class="text-2xl">☀️</div><div class="text-xs">Cabin 72°</div></div>
+                <div><div class="text-2xl">🛠️</div><div class="text-xs">Engine 68°</div></div>
+                <div><div class="text-2xl">🧊</div><div class="text-xs">Fridge 39°</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State 2: advisory -->
+      <div class="w-[360px] mx-auto">
+        <div class="card overflow-hidden" style="border-color:#f6ad55">
+          <div class="boat-dusk p-6 relative h-44 overflow-hidden">
+            <svg viewBox="0 0 300 150" class="absolute inset-x-0 top-0 w-full bob-anim">
+              <circle cx="240" cy="50" r="22" fill="#fff1cd" opacity="0.9"/>
+              <g class="wave-anim" style="transform-origin:150px 105px">
+                <polygon points="120,95 180,95 170,115 130,115" fill="#f4f4f4" stroke="#2d3748" stroke-width="2"/>
+                <line x1="150" y1="95" x2="150" y2="50" stroke="#8b6f3c" stroke-width="2"/>
+                <polygon points="150,55 175,88 150,88" fill="#ef476f"/>
+              </g>
+            </svg>
+            <svg viewBox="0 0 300 40" class="absolute bottom-0 inset-x-0 w-full">
+              <path d="M0,20 Q30,8 60,20 T120,20 T180,20 T240,20 T300,20 V40 H0 Z" fill="#d97706" opacity="0.7"/>
+            </svg>
+            <div class="absolute bottom-2 left-4 right-4 text-center">
+              <div class="display text-2xl font-bold text-white drop-shadow-lg">Kate's a little tired 😴</div>
+            </div>
+          </div>
+
+          <div class="p-5 space-y-4">
+            <div class="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 border-2 border-amber-200">
+              <div class="w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center text-white text-xl flex-shrink-0">!</div>
+              <div>
+                <div class="font-bold text-amber-900">Batteries could be higher</div>
+                <div class="text-sm text-amber-800 mt-1">House battery is at 11.9 V. Generator is running to help charge up.</div>
+                <div class="text-xs text-amber-700 mt-1">(Pete already knows — this is just an FYI.)</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-amber-50 rounded-2xl p-4 text-center">
+                <div class="text-4xl mb-1">⚡</div>
+                <div class="font-bold">Generator on</div>
+              </div>
+              <div class="bg-amber-50 rounded-2xl p-4 text-center" style="background:#fef3c7">
+                <div class="text-4xl mb-1 wobble">🔋</div>
+                <div class="font-bold text-amber-700">11.9 volts</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State 3: CRITICAL -->
+      <div class="w-[360px] mx-auto">
+        <div class="card overflow-hidden border-4 border-red-500 animate-pulse" style="animation-duration:2s">
+          <div class="bg-red-500 p-6 relative h-44 overflow-hidden">
+            <svg viewBox="0 0 300 150" class="absolute inset-x-0 top-0 w-full">
+              <g class="wobble" style="transform-origin:150px 105px">
+                <polygon points="120,95 180,95 170,115 130,115" fill="#f4f4f4" stroke="#7f1d1d" stroke-width="3"/>
+                <line x1="150" y1="95" x2="150" y2="50" stroke="#7f1d1d" stroke-width="2"/>
+                <polygon points="150,55 175,88 150,88" fill="#fca5a5"/>
+                <!-- water inside -->
+                <rect x="130" y="105" width="40" height="10" fill="#1e40af"/>
+              </g>
+            </svg>
+            <svg viewBox="0 0 300 40" class="absolute bottom-0 inset-x-0 w-full">
+              <path d="M0,10 Q30,0 60,10 T120,10 T180,10 T240,10 T300,10 V40 H0 Z" fill="#1e40af"/>
+              <path d="M0,18 Q30,8 60,18 T120,18 T180,18 T240,18 T300,18 V40 H0 Z" fill="#1e3a8a"/>
+            </svg>
+            <div class="absolute bottom-2 left-4 right-4 text-center">
+              <div class="display text-3xl font-bold text-white">Kate needs help!</div>
+            </div>
+          </div>
+
+          <div class="p-5 space-y-4">
+            <div class="text-center">
+              <div class="text-7xl mb-2">💧</div>
+              <div class="display text-4xl font-bold text-red-700">Water in the bilge</div>
+              <div class="text-sm text-gray-600 mt-2">Detected 18 seconds ago. Pete has been notified.</div>
+            </div>
+
+            <div class="bg-red-50 rounded-2xl p-4 border-2 border-red-200 text-center">
+              <div class="text-sm text-red-800">
+                <div class="font-bold mb-1">What this means:</div>
+                Water is collecting somewhere on the boat. Pete should check immediately.
+              </div>
+            </div>
+
+            <button class="w-full bg-red-600 text-white rounded-2xl py-4 font-bold text-lg hover:bg-red-700">
+              OK, I see the alarm
+            </button>
+            <button class="w-full bg-gray-100 text-gray-700 rounded-2xl py-3 font-semibold">
+              📞 Call Pete
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- RIGHT: HA Card -->
+  <section>
+    <h2 class="text-sm font-bold uppercase tracking-wider text-teal-700 mb-4">📊 Home Assistant — Kelly's tablet</h2>
+
+    <div class="space-y-8">
+
+      <!-- HA State 1 -->
+      <div class="card card-accent overflow-hidden">
+        <div class="boat-sky p-8 relative h-48 overflow-hidden flex items-center">
+          <svg viewBox="0 0 400 150" class="absolute inset-x-0 top-4 w-full">
+            <ellipse cx="70" cy="30" rx="35" ry="12" fill="white" opacity="0.9"/>
+            <ellipse cx="95" cy="30" rx="25" ry="9" fill="white" opacity="0.9"/>
+            <circle cx="330" cy="40" r="22" fill="#fde047"/>
+            <g class="wave-anim" style="transform-origin:200px 105px">
+              <polygon points="160,95 240,95 230,120 170,120" fill="#ffffff" stroke="#2d3748" stroke-width="2"/>
+              <line x1="200" y1="95" x2="200" y2="40" stroke="#8b6f3c" stroke-width="3"/>
+              <polygon points="200,45 235,88 200,88" fill="#ef476f"/>
+              <polygon points="200,50 170,88 200,88" fill="#ffd166"/>
+            </g>
+          </svg>
+          <svg viewBox="0 0 400 50" class="absolute bottom-0 inset-x-0 w-full">
+            <path d="M0,25 Q40,10 80,25 T160,25 T240,25 T320,25 T400,25 V50 H0 Z" fill="#48b2c9" opacity="0.8"/>
+            <path d="M0,32 Q40,22 80,32 T160,32 T240,32 T320,32 T400,32 V50 H0 Z" fill="#3a8fa0"/>
+          </svg>
+        </div>
+
+        <div class="p-8">
+          <div class="flex items-start justify-between mb-6">
+            <div>
+              <div class="display text-3xl font-bold text-emerald-700">Kate is having a great day! 🌊</div>
+              <div class="text-sm text-gray-500 mt-1">Plugged in at Safe Harbor · all systems happy · checked in 23s ago</div>
+            </div>
+            <span class="chip bg-emerald-100 text-emerald-800">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>All good
+            </span>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3">
+            <div class="bg-sky-50 rounded-2xl p-4 text-center">
+              <div class="text-3xl mb-1">⚓</div>
+              <div class="text-xs text-gray-500">Power</div>
+              <div class="font-bold">Shore</div>
+            </div>
+            <div class="bg-emerald-50 rounded-2xl p-4 text-center">
+              <div class="text-3xl mb-1">💧</div>
+              <div class="text-xs text-gray-500">Bilge</div>
+              <div class="font-bold text-emerald-700">Dry</div>
+            </div>
+            <div class="bg-yellow-50 rounded-2xl p-4 text-center">
+              <div class="text-3xl mb-1">🔋</div>
+              <div class="text-xs text-gray-500">House</div>
+              <div class="font-bold">12.8 V</div>
+            </div>
+            <div class="bg-orange-50 rounded-2xl p-4 text-center">
+              <div class="text-3xl mb-1">☀️</div>
+              <div class="text-xs text-gray-500">Cabin</div>
+              <div class="font-bold">72°</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HA State 2 -->
+      <div class="card overflow-hidden" style="border-color:#f6ad55">
+        <div class="boat-dusk p-8 relative h-40">
+          <svg viewBox="0 0 400 120" class="absolute inset-x-0 top-4 w-full">
+            <circle cx="330" cy="40" r="20" fill="#fef3c7"/>
+            <g class="wave-anim" style="transform-origin:200px 100px">
+              <polygon points="160,90 240,90 230,112 170,112" fill="#f4f4f4" stroke="#2d3748" stroke-width="2"/>
+              <line x1="200" y1="90" x2="200" y2="40" stroke="#8b6f3c" stroke-width="2.5"/>
+              <polygon points="200,45 230,85 200,85" fill="#ef476f"/>
+            </g>
+          </svg>
+        </div>
+        <div class="p-8">
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <div class="display text-3xl font-bold text-amber-800">Kate is a little tired 😴</div>
+              <div class="text-sm text-gray-500 mt-1">Underway on Lake Erie · generator running to help</div>
+            </div>
+            <span class="chip bg-amber-100 text-amber-800">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>FYI
+            </span>
+          </div>
+
+          <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+            <div class="text-3xl">🪫</div>
+            <div>
+              <div class="font-bold text-amber-900">House battery is at 11.9 V</div>
+              <div class="text-sm text-amber-800">Pete knows. This is just an FYI — the generator is running to charge it back up. Nothing for you to do.</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3">
+            <div class="bg-emerald-50 rounded-2xl p-4 text-center"><div class="text-3xl mb-1">💧</div><div class="text-xs text-gray-500">Bilge</div><div class="font-bold text-emerald-700">Dry</div></div>
+            <div class="bg-amber-100 rounded-2xl p-4 text-center"><div class="text-3xl mb-1">⚡</div><div class="text-xs text-gray-500">Power</div><div class="font-bold text-amber-700">Genset</div></div>
+            <div class="bg-amber-100 rounded-2xl p-4 text-center"><div class="text-3xl mb-1 wobble">🔋</div><div class="text-xs text-gray-500">House</div><div class="font-bold text-amber-800">11.9 V</div></div>
+            <div class="bg-orange-50 rounded-2xl p-4 text-center"><div class="text-3xl mb-1">☀️</div><div class="text-xs text-gray-500">Cabin</div><div class="font-bold">74°</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HA State 3: Critical -->
+      <div class="card overflow-hidden border-4 border-red-500 animate-pulse" style="animation-duration:2s">
+        <div class="bg-red-500 p-8 relative h-48 text-center flex flex-col justify-center items-center">
+          <div class="text-7xl mb-2">🆘</div>
+          <div class="display text-4xl font-bold text-white">Kate needs help!</div>
+          <div class="text-white/90 text-sm mt-2">Water in the bilge · 18 seconds ago</div>
+        </div>
+
+        <div class="p-8 space-y-4">
+          <div class="bg-red-50 rounded-2xl p-5 border-2 border-red-200">
+            <div class="font-bold text-red-900 mb-2 text-lg">What this means:</div>
+            <div class="text-red-800">Water is collecting inside the boat. It could be nothing serious (rain, splash), or it could be a leak. Pete has been notified by phone, phone push, and the home speakers.</div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <button class="bg-red-600 text-white rounded-2xl py-4 font-bold text-lg hover:bg-red-700">OK, I see</button>
+            <button class="bg-sky-100 text-sky-900 rounded-2xl py-4 font-bold hover:bg-sky-200">📞 Call Pete</button>
+            <button class="bg-gray-100 text-gray-700 rounded-2xl py-4 font-bold hover:bg-gray-200">Marina #</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="max-w-7xl mx-auto mt-12 pt-6 border-t-2 border-teal-200 text-center text-xs text-teal-700">
+  EvenKeel Mockup 05 of 5 · Playful &amp; Friendly · <a href="README.md" class="underline">Back to index</a>
+</footer>
+</body>
+</html>

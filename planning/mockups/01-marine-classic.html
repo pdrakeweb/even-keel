@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvenKeel — Mockup 01: Marine Classic</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --navy: #14253a;
+    --navy-deep: #0a1624;
+    --brass: #c9a961;
+    --brass-dark: #8b6f3c;
+    --walnut: #3e2517;
+    --bone: #f4ecd8;
+    --green: #2d6a4f;
+    --amber: #d4a373;
+    --red: #8b1e1e;
+  }
+  body { font-family: 'Georgia', 'Times New Roman', serif; background: var(--navy-deep); color: var(--bone); }
+  .wood { background-image: linear-gradient(135deg, #4a2e1f 0%, #3e2517 50%, #2d1a0e 100%); }
+  .brass-ring { background: radial-gradient(circle, #e8c878 0%, var(--brass) 45%, var(--brass-dark) 100%); }
+  .gauge-face { background: radial-gradient(circle at 30% 30%, #ffffff 0%, #e8e0cc 60%, #c9bfa5 100%); }
+  .serif-caps { font-family: 'Georgia', serif; text-transform: uppercase; letter-spacing: 0.15em; font-variant: small-caps; }
+  .scroll-plate { background: linear-gradient(180deg, #f4ecd8 0%, #e8dcc0 100%); color: var(--navy); border: 1px solid var(--brass-dark); }
+  .rivets::before, .rivets::after {
+    content: '●'; color: var(--brass); position: absolute; top: 0.5rem; font-size: 0.5rem;
+  }
+  .rivets::before { left: 0.75rem; }
+  .rivets::after { right: 0.75rem; }
+  .needle { transform-origin: bottom center; transition: transform 1s ease-out; }
+  .lamp-on { box-shadow: 0 0 12px 2px currentColor; }
+</style>
+</head>
+<body class="min-h-screen p-6">
+
+<header class="max-w-6xl mx-auto mb-10">
+  <div class="flex items-baseline gap-4">
+    <h1 class="text-4xl serif-caps text-[#c9a961]">EvenKeel</h1>
+    <span class="text-sm text-[#c9a961]/70">Mockup 01 — Marine Classic</span>
+  </div>
+  <p class="text-sm text-[#f4ecd8]/70 mt-2">Brass-and-navy instrument panel. Evokes B&amp;G Triton, Raymarine i70, varnished teak. Formal typography, needle gauges, engraved scrollwork. For Pete; a boat-first aesthetic.</p>
+</header>
+
+<main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+  <!-- LEFT: Phone PWA -->
+  <section>
+    <h2 class="serif-caps text-sm text-[#c9a961] mb-4">📱 Boat-side Phone PWA — <code class="text-xs not-italic">boatmon-1.local</code></h2>
+
+    <div class="space-y-6">
+
+      <!-- STATE 1: All OK -->
+      <div class="w-full max-w-[375px] mx-auto wood rounded-2xl p-1 shadow-2xl">
+        <div class="bg-[#14253a] rounded-xl p-5 border-2 border-[#c9a961]/40 relative">
+          <div class="flex items-center justify-between pb-3 border-b border-[#c9a961]/30 mb-4">
+            <div class="serif-caps text-xs text-[#c9a961]">Hunter 41DS</div>
+            <div class="flex items-center gap-1 text-xs"><span class="w-2 h-2 rounded-full bg-green-400 lamp-on text-green-400"></span><span class="text-[#c9a961]/80">Online</span></div>
+          </div>
+
+          <!-- Main gauges -->
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <!-- House batt -->
+            <div class="bg-gradient-to-br from-[#0a1624] to-[#14253a] rounded-full aspect-square border-4 border-[#c9a961] flex flex-col items-center justify-center relative">
+              <svg viewBox="0 0 100 100" class="absolute inset-2">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f4ecd8" stroke-width="0.5" opacity="0.3"/>
+                <g stroke="#f4ecd8" stroke-width="0.7">
+                  <line x1="50" y1="15" x2="50" y2="19"/>
+                  <line x1="22" y1="50" x2="26" y2="50"/>
+                  <line x1="78" y1="50" x2="74" y2="50"/>
+                  <line x1="50" y1="81" x2="50" y2="85"/>
+                </g>
+                <line x1="50" y1="50" x2="50" y2="18" stroke="#c9a961" stroke-width="2" stroke-linecap="round" class="needle" style="transform:rotate(35deg)"/>
+                <circle cx="50" cy="50" r="3" fill="#c9a961"/>
+              </svg>
+              <div class="mt-12 text-center">
+                <div class="text-lg font-bold text-[#f4ecd8]">12.8<span class="text-xs">V</span></div>
+                <div class="serif-caps text-[9px] text-[#c9a961]">House</div>
+              </div>
+            </div>
+
+            <!-- Start batt -->
+            <div class="bg-gradient-to-br from-[#0a1624] to-[#14253a] rounded-full aspect-square border-4 border-[#c9a961] flex flex-col items-center justify-center relative">
+              <svg viewBox="0 0 100 100" class="absolute inset-2">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f4ecd8" stroke-width="0.5" opacity="0.3"/>
+                <line x1="50" y1="50" x2="50" y2="18" stroke="#c9a961" stroke-width="2" stroke-linecap="round" class="needle" style="transform:rotate(30deg)"/>
+                <circle cx="50" cy="50" r="3" fill="#c9a961"/>
+              </svg>
+              <div class="mt-12 text-center">
+                <div class="text-lg font-bold text-[#f4ecd8]">12.6<span class="text-xs">V</span></div>
+                <div class="serif-caps text-[9px] text-[#c9a961]">Start</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status strip -->
+          <div class="scroll-plate rounded px-3 py-2 mb-3 text-center">
+            <div class="serif-caps text-[10px] text-[#8b6f3c]">Bilge</div>
+            <div class="text-xl font-bold text-[#2d6a4f]">DRY</div>
+          </div>
+          <div class="scroll-plate rounded px-3 py-2 mb-3 text-center">
+            <div class="serif-caps text-[10px] text-[#8b6f3c]">Power Source</div>
+            <div class="text-base font-bold text-[#14253a]">⚓ SHORE</div>
+          </div>
+
+          <!-- Temp row -->
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-[#0a1624] rounded border border-[#c9a961]/50 p-2 text-center">
+              <div class="serif-caps text-[8px] text-[#c9a961]">Cabin</div>
+              <div class="text-sm font-bold">72°</div>
+            </div>
+            <div class="bg-[#0a1624] rounded border border-[#c9a961]/50 p-2 text-center">
+              <div class="serif-caps text-[8px] text-[#c9a961]">Engine</div>
+              <div class="text-sm font-bold">68°</div>
+            </div>
+            <div class="bg-[#0a1624] rounded border border-[#c9a961]/50 p-2 text-center">
+              <div class="serif-caps text-[8px] text-[#c9a961]">Fridge</div>
+              <div class="text-sm font-bold">39°</div>
+            </div>
+          </div>
+
+          <div class="mt-3 text-center text-[9px] text-[#c9a961]/60 serif-caps">— All Systems Nominal —</div>
+        </div>
+      </div>
+
+      <!-- STATE 2: Warning (underway) -->
+      <div class="w-full max-w-[375px] mx-auto wood rounded-2xl p-1 shadow-2xl">
+        <div class="bg-[#14253a] rounded-xl p-5 border-2 border-[#d4a373] relative">
+          <div class="flex items-center justify-between pb-3 border-b border-[#c9a961]/30 mb-4">
+            <div class="serif-caps text-xs text-[#c9a961]">Hunter 41DS — Underway</div>
+            <div class="flex items-center gap-1 text-xs"><span class="w-2 h-2 rounded-full bg-green-400 lamp-on text-green-400"></span><span class="text-[#c9a961]/80">Online</span></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="bg-gradient-to-br from-[#0a1624] to-[#14253a] rounded-full aspect-square border-4 border-[#d4a373] flex flex-col items-center justify-center relative">
+              <svg viewBox="0 0 100 100" class="absolute inset-2">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f4ecd8" stroke-width="0.5" opacity="0.3"/>
+                <line x1="50" y1="50" x2="50" y2="18" stroke="#d4a373" stroke-width="2" stroke-linecap="round" class="needle" style="transform:rotate(-45deg)"/>
+                <circle cx="50" cy="50" r="3" fill="#d4a373"/>
+              </svg>
+              <div class="mt-12 text-center">
+                <div class="text-lg font-bold text-[#d4a373]">11.9<span class="text-xs">V</span></div>
+                <div class="serif-caps text-[9px] text-[#c9a961]">House ⚠</div>
+              </div>
+            </div>
+            <div class="bg-gradient-to-br from-[#0a1624] to-[#14253a] rounded-full aspect-square border-4 border-[#c9a961] flex flex-col items-center justify-center relative">
+              <svg viewBox="0 0 100 100" class="absolute inset-2">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f4ecd8" stroke-width="0.5" opacity="0.3"/>
+                <line x1="50" y1="50" x2="50" y2="18" stroke="#c9a961" stroke-width="2" stroke-linecap="round" class="needle" style="transform:rotate(15deg)"/>
+                <circle cx="50" cy="50" r="3" fill="#c9a961"/>
+              </svg>
+              <div class="mt-12 text-center">
+                <div class="text-lg font-bold text-[#f4ecd8]">12.4<span class="text-xs">V</span></div>
+                <div class="serif-caps text-[9px] text-[#c9a961]">Start</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scroll-plate rounded px-3 py-2 mb-3 text-center">
+            <div class="serif-caps text-[10px] text-[#8b6f3c]">Bilge</div>
+            <div class="text-xl font-bold text-[#2d6a4f]">DRY</div>
+          </div>
+          <div class="scroll-plate rounded px-3 py-2 mb-3 text-center" style="background: linear-gradient(180deg, #f4e4cc 0%, #e8d4a0 100%);">
+            <div class="serif-caps text-[10px] text-[#8b6f3c]">Power Source</div>
+            <div class="text-base font-bold text-[#8b6f3c]">⚡ GENERATOR</div>
+          </div>
+
+          <div class="bg-[#d4a373]/20 border border-[#d4a373] rounded p-2 text-center">
+            <div class="serif-caps text-[10px] text-[#d4a373]">— Advisory —</div>
+            <div class="text-sm text-[#f4ecd8]">House bank below 12.0V</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATE 3: Critical -->
+      <div class="w-full max-w-[375px] mx-auto wood rounded-2xl p-1 shadow-2xl">
+        <div class="bg-[#14253a] rounded-xl p-5 border-4 border-[#8b1e1e] relative animate-pulse" style="animation-duration:2s">
+          <div class="bg-[#8b1e1e] -mx-5 -mt-5 px-5 py-3 rounded-t-lg mb-4 text-center">
+            <div class="serif-caps text-xs text-[#f4ecd8] tracking-widest">⚠ Emergency ⚠</div>
+            <div class="text-3xl font-black text-[#f4ecd8] tracking-wider">WATER IN BILGE</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="bg-gradient-to-br from-[#0a1624] to-[#14253a] rounded-full aspect-square border-4 border-[#c9a961] flex flex-col items-center justify-center relative">
+              <div class="mt-6 text-center">
+                <div class="text-lg font-bold text-[#f4ecd8]">12.6<span class="text-xs">V</span></div>
+                <div class="serif-caps text-[9px] text-[#c9a961]">House</div>
+              </div>
+            </div>
+            <div class="bg-gradient-to-br from-[#0a1624] to-[#14253a] rounded-full aspect-square border-4 border-[#c9a961] flex flex-col items-center justify-center relative">
+              <div class="mt-6 text-center">
+                <div class="text-lg font-bold text-[#f4ecd8]">12.4<span class="text-xs">V</span></div>
+                <div class="serif-caps text-[9px] text-[#c9a961]">Start</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scroll-plate rounded px-3 py-2 mb-2 text-center" style="background: linear-gradient(180deg, #ffe5e5 0%, #ffb5b5 100%); border-color:#8b1e1e;">
+            <div class="serif-caps text-[10px] text-[#8b1e1e]">Bilge Alarm</div>
+            <div class="text-2xl font-black text-[#8b1e1e]">⚠ WATER ⚠</div>
+            <div class="text-[10px] text-[#8b1e1e] mt-1">Detected 18 sec ago</div>
+          </div>
+
+          <button class="w-full bg-[#c9a961] text-[#14253a] serif-caps text-xs py-2 rounded font-bold hover:bg-[#d4b56f]">Acknowledge</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- RIGHT: HA Lovelace card -->
+  <section>
+    <h2 class="serif-caps text-sm text-[#c9a961] mb-4">📊 Home Assistant — "How's My Boat" card</h2>
+
+    <div class="space-y-6">
+
+      <!-- HA State 1: All OK -->
+      <div class="wood rounded-2xl p-1 shadow-2xl">
+        <div class="bg-[#14253a] rounded-xl p-6 border-2 border-[#c9a961]/40 relative">
+          <div class="absolute top-3 left-3 right-3 h-1 bg-gradient-to-r from-transparent via-[#c9a961]/40 to-transparent"></div>
+          <div class="flex items-center justify-between mb-5 pt-2">
+            <div>
+              <div class="serif-caps text-lg text-[#c9a961]">Hunter 41DS</div>
+              <div class="text-[10px] text-[#f4ecd8]/50">Safe Harbor Sandusky · Slip A-14</div>
+            </div>
+            <div class="scroll-plate rounded px-3 py-1 text-xs font-bold">● ONLINE</div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3 mb-4">
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#14253a] font-bold text-lg">⚓</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#c9a961]">Shore</div>
+            </div>
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#2d6a4f] font-bold text-sm">DRY</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#c9a961]">Bilge</div>
+            </div>
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#14253a] font-bold text-sm">12.8</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#c9a961]">House V</div>
+            </div>
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#14253a] font-bold text-sm">72°</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#c9a961]">Cabin</div>
+            </div>
+          </div>
+
+          <div class="scroll-plate rounded p-3 text-center">
+            <div class="serif-caps text-[9px] text-[#8b6f3c]">— Ship's Log —</div>
+            <div class="text-sm text-[#14253a] italic">All moored, all quiet. Last updated 23 seconds ago.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HA State 2: Warning -->
+      <div class="wood rounded-2xl p-1 shadow-2xl">
+        <div class="bg-[#14253a] rounded-xl p-6 border-2 border-[#d4a373] relative">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <div class="serif-caps text-lg text-[#c9a961]">Hunter 41DS</div>
+              <div class="text-[10px] text-[#f4ecd8]/50">Underway · Lake Erie 41.54°N 82.48°W</div>
+            </div>
+            <div class="bg-[#d4a373] text-[#14253a] rounded px-3 py-1 text-xs font-bold">⚠ ADVISORY</div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3 mb-4">
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#8b6f3c] font-bold text-xs">⚡GEN</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#c9a961]">Gen</div>
+            </div>
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#2d6a4f] font-bold text-sm">DRY</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#c9a961]">Bilge</div>
+            </div>
+            <div class="text-center">
+              <div class="rounded-full aspect-square p-1 mb-1" style="background: radial-gradient(circle, #e8a878 0%, #d4a373 45%, #8b6f3c 100%);">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#8b1e1e] font-bold text-sm">11.9</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#d4a373]">House V ⚠</div>
+            </div>
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#14253a] font-bold text-sm">74°</div>
+              </div>
+              <div class="serif-caps text-[10px] text-[#c9a961]">Cabin</div>
+            </div>
+          </div>
+
+          <div class="scroll-plate rounded p-3 text-center" style="background: linear-gradient(180deg, #f4e4cc 0%, #e8d4a0 100%);">
+            <div class="serif-caps text-[9px] text-[#8b6f3c]">— Advisory —</div>
+            <div class="text-sm text-[#14253a] italic">House bank at 11.9 V — consider reducing load.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HA State 3: Critical -->
+      <div class="wood rounded-2xl p-1 shadow-2xl">
+        <div class="bg-[#8b1e1e] rounded-xl p-6 border-4 border-[#f4ecd8] relative animate-pulse" style="animation-duration:2s">
+          <div class="text-center mb-4">
+            <div class="serif-caps text-xs text-[#f4ecd8] tracking-widest">— Emergency Aboard —</div>
+            <div class="text-4xl font-black text-[#f4ecd8] tracking-wide mt-1">WATER IN BILGE</div>
+            <div class="text-xs text-[#f4ecd8]/90 italic">Float switch tripped 18 seconds ago</div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 mb-4">
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#14253a] font-bold text-xs">⚓</div>
+              </div>
+              <div class="serif-caps text-[9px] text-[#f4ecd8]">Shore</div>
+            </div>
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#14253a] font-bold text-sm">12.6</div>
+              </div>
+              <div class="serif-caps text-[9px] text-[#f4ecd8]">House</div>
+            </div>
+            <div class="text-center">
+              <div class="brass-ring rounded-full aspect-square p-1 mb-1">
+                <div class="gauge-face rounded-full w-full h-full flex items-center justify-center text-[#14253a] font-bold text-sm">72°</div>
+              </div>
+              <div class="serif-caps text-[9px] text-[#f4ecd8]">Cabin</div>
+            </div>
+          </div>
+
+          <button class="w-full bg-[#c9a961] text-[#14253a] serif-caps text-sm py-3 rounded font-bold hover:bg-[#d4b56f]">🔔 Acknowledge Alarm</button>
+          <div class="text-center mt-2 text-[10px] text-[#f4ecd8]/80">Pushover · HA Push · TTS — all fired</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="max-w-6xl mx-auto mt-12 pt-6 border-t border-[#c9a961]/30 text-center text-xs text-[#c9a961]/60">
+  EvenKeel Mockup 01 of 5 — Marine Classic. See <a href="README.md" class="underline">README</a> for other directions.
+</footer>
+</body>
+</html>

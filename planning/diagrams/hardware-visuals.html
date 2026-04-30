@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvenKeel — Hardware Visual Diagrams (v2 Simplified)</title>
+<style>
+  :root {
+    --bg: #f5f1e8;
+    --ink: #1a1a1a;
+    --muted: #5a5a5a;
+    --navy: #14253a;
+    --brass: #c9a961;
+    --red: #c0392b;
+    --blue: #2563eb;
+    --green: #16a34a;
+    --amber: #d97706;
+    --purple: #7c3aed;
+    --pink: #db2777;
+    --cyan: #0891b2;
+    --qwiic: #0b8fbf;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--ink); margin: 0; padding: 2rem; line-height: 1.5; }
+  header { max-width: 1200px; margin: 0 auto 2rem; border-bottom: 2px solid var(--navy); padding-bottom: 1rem; }
+  h1 { margin: 0; font-size: 2rem; color: var(--navy); }
+  h2 { color: var(--navy); margin-top: 3rem; padding-left: 0.5rem; border-left: 4px solid var(--brass); font-size: 1.5rem; }
+  h3 { color: var(--navy); margin-top: 1.5rem; }
+  section { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; margin-bottom: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .caption { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+  .badge { display: inline-block; background: #16a34a; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; margin-left: 0.5rem; font-weight: 600; }
+  .svg-frame { background: #fafafa; border: 1px solid #ddd; border-radius: 6px; padding: 1rem; overflow-x: auto; }
+  svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; margin-top: 1rem; }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.2); }
+  code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⛵ EvenKeel — Hardware Visuals <span class="badge">v2 simplified</span></h1>
+  <p>SVG illustrations for the <strong>simplified</strong> plug-together design per <a href="../simplicity-review.md">simplicity-review.md</a>. Feather + STEMMA QT / Qwiic ecosystem, externalized USB-C power, Shelly plugs for AC detection. Supersedes the v1 DevKitC-1 visuals.</p>
+</header>
+
+<!-- ═════════════════ 1. BOAT ELEVATION ═════════════════ -->
+<section>
+<h2>1. Boat Elevation — Where Each Component Lives</h2>
+<p>Hunter 41DS profile with <strong>simplified</strong> component placement. Shelly plugs in-line with shore/gen feeds externally; everything else smaller and fewer wires.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8d8ea"/>
+      <stop offset="100%" stop-color="#4a90a4"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8f4f8"/>
+      <stop offset="100%" stop-color="#b3daec"/>
+    </linearGradient>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8f6f0"/>
+      <stop offset="100%" stop-color="#e8e2d0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="360" fill="url(#sky)"/>
+  <rect y="360" width="1000" height="160" fill="url(#water)"/>
+  <path d="M0,360 Q50,355 100,360 T200,360 T300,360 T400,360 T500,360 T600,360 T700,360 T800,360 T900,360 T1000,360" fill="none" stroke="#4a90a4" stroke-width="1" opacity="0.6"/>
+  <text x="30" y="355" font-size="10" fill="#4a90a4">waterline</text>
+
+  <!-- Hull -->
+  <path d="M180,360 L810,360 Q890,355 900,340 L870,280 L230,280 Q170,300 160,340 Z" fill="url(#hull)" stroke="#555" stroke-width="1.5"/>
+  <path d="M340,280 L770,280 L760,235 Q720,218 450,218 Q380,218 340,235 Z" fill="#f0ebdd" stroke="#555" stroke-width="1.5"/>
+  <path d="M770,280 L810,280 L815,270 L815,250 L790,245 L770,260 Z" fill="#d8cfb8" stroke="#555" stroke-width="1.2"/>
+  <line x1="810" y1="360" x2="815" y2="270" stroke="#555" stroke-width="1.5"/>
+
+  <g fill="#4a6b85" stroke="#333" stroke-width="0.8">
+    <rect x="380" y="245" width="24" height="14" rx="3"/>
+    <rect x="420" y="245" width="24" height="14" rx="3"/>
+    <rect x="460" y="245" width="24" height="14" rx="3"/>
+    <rect x="600" y="245" width="24" height="14" rx="3"/>
+    <rect x="640" y="245" width="24" height="14" rx="3"/>
+    <rect x="680" y="245" width="24" height="14" rx="3"/>
+  </g>
+
+  <line x1="520" y1="218" x2="520" y2="30" stroke="#888" stroke-width="4"/>
+  <line x1="520" y1="105" x2="690" y2="115" stroke="#888" stroke-width="3"/>
+  <line x1="520" y1="30" x2="520" y2="15" stroke="#333" stroke-width="2"/>
+  <circle cx="520" cy="12" r="4" fill="#c0392b"/>
+  <line x1="510" y1="20" x2="530" y2="20" stroke="#333" stroke-width="1.5"/>
+  <line x1="520" y1="60" x2="420" y2="220" stroke="#888" stroke-width="0.8" opacity="0.7"/>
+  <line x1="520" y1="60" x2="620" y2="220" stroke="#888" stroke-width="0.8" opacity="0.7"/>
+  <path d="M520,55 L520,110 L680,115 Z" fill="#fdfcf7" stroke="#999" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- Nav station — smaller, single box now -->
+  <rect x="640" y="300" width="80" height="32" fill="#0b5d2e" stroke="#c9a961" stroke-width="2" rx="3"/>
+  <text x="680" y="316" text-anchor="middle" font-size="10" fill="#c9e8c4" font-weight="700">NAV</text>
+  <text x="680" y="328" text-anchor="middle" font-size="7" fill="#fff">Feather + Pi</text>
+
+  <!-- Bilge float -->
+  <circle cx="500" cy="348" r="6" fill="#c0392b" stroke="#8b1e1e" stroke-width="1.5"/>
+  <line x1="500" y1="342" x2="500" y2="354" stroke="#8b1e1e" stroke-width="1"/>
+
+  <!-- Engine compartment -->
+  <rect x="550" y="300" width="60" height="40" fill="#555" stroke="#333" stroke-width="1.5" rx="2"/>
+  <text x="580" y="325" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">ENG</text>
+
+  <!-- Batteries -->
+  <rect x="400" y="310" width="50" height="30" fill="#2d5a3d" stroke="#1a3a24" stroke-width="1.5" rx="2"/>
+  <text x="425" y="329" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">BATT</text>
+
+  <!-- Fridge -->
+  <rect x="340" y="260" width="30" height="40" fill="#dbeafe" stroke="#1e40af" stroke-width="1.5" rx="2"/>
+  <text x="355" y="286" text-anchor="middle" font-size="8" fill="#1e40af" font-weight="700">FRIDGE</text>
+
+  <!-- Shore power inlet + Shelly -->
+  <rect x="850" y="325" width="20" height="15" fill="#7c3aed" stroke="#4c1d95" stroke-width="1"/>
+  <rect x="825" y="325" width="20" height="15" fill="#e5e5e5" stroke="#333" stroke-width="1"/>
+  <text x="835" y="336" text-anchor="middle" font-size="6" fill="#333" font-weight="700">Shelly</text>
+
+  <!-- Temp probes -->
+  <g fill="#d97706" stroke="#92400e" stroke-width="1">
+    <circle cx="400" cy="250" r="4"/>
+    <circle cx="580" cy="310" r="4"/>
+    <circle cx="355" cy="280" r="3.5"/>
+  </g>
+
+  <!-- ANNOTATIONS -->
+  <g font-size="11">
+    <line x1="520" y1="18" x2="680" y2="55" stroke="#c0392b" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="680" y="42" width="175" height="26" fill="white" stroke="#c0392b" stroke-width="1" rx="3"/>
+    <text x="767" y="58" text-anchor="middle" fill="#c0392b" font-weight="600">① Masthead VHF/AIS antenna</text>
+  </g>
+
+  <g font-size="11">
+    <circle cx="450" cy="214" r="4" fill="#0891b2" stroke="#075985" stroke-width="1"/>
+    <line x1="450" y1="210" x2="140" y2="130" stroke="#0891b2" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="20" y="117" width="225" height="26" fill="white" stroke="#0891b2" stroke-width="1" rx="3"/>
+    <text x="132" y="133" text-anchor="middle" fill="#0891b2" font-weight="600">② Cabin-top GPS antenna (Phase 8)</text>
+  </g>
+
+  <g font-size="11">
+    <line x1="720" y1="315" x2="900" y2="260" stroke="#14253a" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="795" y="242" width="200" height="50" fill="white" stroke="#14253a" stroke-width="1" rx="3"/>
+    <text x="895" y="259" text-anchor="middle" fill="#14253a" font-weight="700">③ Nav station</text>
+    <text x="895" y="273" text-anchor="middle" fill="#5a5a5a" font-size="10">Feather + dAISy + Pi (broker)</text>
+    <text x="895" y="285" text-anchor="middle" fill="#0891b2" font-size="9">Qwiic sensor chain</text>
+  </g>
+
+  <g font-size="11">
+    <line x1="580" y1="340" x2="400" y2="420" stroke="#555" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="290" y="410" width="220" height="40" fill="white" stroke="#555" stroke-width="1" rx="3"/>
+    <text x="400" y="427" text-anchor="middle" fill="#555" font-weight="700">④ Engine compartment</text>
+    <text x="400" y="441" text-anchor="middle" fill="#5a5a5a" font-size="10">DS18B20 probe (pre-wired 3m lead)</text>
+  </g>
+
+  <g font-size="11">
+    <line x1="425" y1="340" x2="150" y2="420" stroke="#2d5a3d" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="20" y="410" width="260" height="40" fill="white" stroke="#2d5a3d" stroke-width="1" rx="3"/>
+    <text x="150" y="427" text-anchor="middle" fill="#2d5a3d" font-weight="700">⑤ Battery bank</text>
+    <text x="150" y="441" text-anchor="middle" fill="#5a5a5a" font-size="10">INA228 Qwiic · 100A shunt · SmartShunt BLE</text>
+  </g>
+
+  <g font-size="11">
+    <line x1="500" y1="350" x2="620" y2="475" stroke="#c0392b" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="540" y="475" width="190" height="26" fill="white" stroke="#c0392b" stroke-width="1" rx="3"/>
+    <text x="635" y="492" text-anchor="middle" fill="#c0392b" font-weight="700">⑥ Bilge float switch</text>
+  </g>
+
+  <g font-size="11">
+    <line x1="400" y1="250" x2="195" y2="210" stroke="#d97706" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="20" y="195" width="180" height="26" fill="white" stroke="#d97706" stroke-width="1" rx="3"/>
+    <text x="110" y="212" text-anchor="middle" fill="#d97706" font-weight="700">⑦ Cabin DS18B20</text>
+  </g>
+
+  <g font-size="11">
+    <line x1="355" y1="275" x2="195" y2="265" stroke="#1e40af" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="20" y="250" width="180" height="26" fill="white" stroke="#1e40af" stroke-width="1" rx="3"/>
+    <text x="110" y="267" text-anchor="middle" fill="#1e40af" font-weight="700">⑧ Fridge DS18B20</text>
+  </g>
+
+  <!-- Shelly plugs annotation -->
+  <g font-size="11">
+    <line x1="835" y1="330" x2="910" y2="395" stroke="#7c3aed" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="760" y="385" width="230" height="40" fill="white" stroke="#7c3aed" stroke-width="1" rx="3"/>
+    <text x="875" y="402" text-anchor="middle" fill="#7c3aed" font-weight="700">⑨ Shelly Plus Plug S × 2</text>
+    <text x="875" y="416" text-anchor="middle" fill="#5a5a5a" font-size="10">shore + gen · UL-listed · native MQTT</text>
+  </g>
+
+  <!-- LTE Router -->
+  <g font-size="11">
+    <rect x="700" y="265" width="18" height="12" fill="#1e3a5f" stroke="#102340" stroke-width="1" rx="2"/>
+    <line x1="710" y1="275" x2="600" y2="475" stroke="#1e3a5f" stroke-width="1" stroke-dasharray="3,2"/>
+    <rect x="410" y="475" width="195" height="26" fill="white" stroke="#1e3a5f" stroke-width="1" rx="3"/>
+    <text x="507" y="492" text-anchor="middle" fill="#1e3a5f" font-weight="700">⑩ X75 LTE router (WG client)</text>
+  </g>
+
+</svg>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background:#c0392b"></span>RF / antenna</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#0b5d2e"></span>Feather + dAISy</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#0891b2"></span>Qwiic / I²C sensors</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#2d5a3d"></span>Battery sensing</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#d97706"></span>Temperature</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#7c3aed"></span>Shelly AC plug</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#1e3a5f"></span>Network</div>
+</div>
+</section>
+
+<!-- ═════════════════ 2. ENCLOSURE INTERIOR ═════════════════ -->
+<section>
+<h2>2. Enclosure Interior — Feather-sized IoT Box</h2>
+<p>Simplified layout: Feather stacked with Featherwing Proto and dAISy, Qwiic chain exits via grommet. No DIN rail, no M12 bulkheads, no power components.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg">
+  <!-- Enclosure outer -->
+  <rect x="60" y="40" width="680" height="380" fill="#f8f6f0" stroke="#444" stroke-width="3" rx="10"/>
+  <rect x="75" y="55" width="650" height="350" fill="white" stroke="#888" stroke-width="1" stroke-dasharray="4,4" rx="6"/>
+  <text x="80" y="34" font-size="11" fill="#444" font-weight="600">Feather-sized IoT enclosure · ~$15 · ABS · 4.0" × 2.5" × 1.5" interior</text>
+
+  <!-- Feather stack (center-left) -->
+  <g>
+    <!-- dAISy on side with standoffs -->
+    <rect x="100" y="105" width="200" height="90" fill="#7b2d2d" stroke="#4d1a1a" stroke-width="1.5" rx="4"/>
+    <text x="200" y="125" text-anchor="middle" font-size="11" fill="#fdd5d5" font-weight="700">dAISy HAT</text>
+    <text x="200" y="140" text-anchor="middle" font-size="9" fill="#fdd5d5">Wegmatt AIS Receiver</text>
+    <rect x="150" y="150" width="80" height="30" fill="#2a2a2a" stroke="#000" rx="2"/>
+    <text x="190" y="169" text-anchor="middle" font-size="7" fill="#ddd">CMX589A + MSP430</text>
+    <rect x="265" y="155" width="20" height="20" fill="#8c8c8c" stroke="#333" stroke-width="1"/>
+    <circle cx="275" cy="165" r="5" fill="#222"/>
+    <text x="200" y="190" text-anchor="middle" font-size="7" fill="#fdd5d5">mounted w/ 3M stick-on standoffs</text>
+  </g>
+
+  <!-- Feather + Featherwing Proto stack -->
+  <g>
+    <rect x="340" y="90" width="240" height="130" fill="#0b5d2e" stroke="#073d1e" stroke-width="2" rx="4"/>
+    <text x="460" y="110" text-anchor="middle" font-size="11" fill="#c9e8c4" font-weight="700">Adafruit ESP32-S3 Feather #5477</text>
+    <rect x="360" y="120" width="200" height="50" fill="#222" stroke="#000" stroke-width="1" rx="3"/>
+    <rect x="370" y="126" width="180" height="28" fill="#444" stroke="#111" stroke-width="0.5" rx="2"/>
+    <rect x="460" y="132" width="20" height="12" fill="#8c8c8c"/>
+    <text x="470" y="141" text-anchor="middle" font-size="6" fill="white" font-weight="700">ESP32-S3</text>
+    <!-- STEMMA QT connector -->
+    <rect x="530" y="132" width="14" height="10" fill="#0b8fbf" stroke="#075080"/>
+    <text x="537" y="155" text-anchor="middle" font-size="6" fill="#0b8fbf">Qwiic</text>
+    <!-- USB-C -->
+    <rect x="445" y="160" width="30" height="8" fill="#111"/>
+    <text x="460" y="175" text-anchor="middle" font-size="7" fill="white">USB-C</text>
+    <!-- Featherwing proto on top -->
+    <rect x="360" y="178" width="200" height="35" fill="#8b1e1e" stroke="#500" stroke-width="1" rx="2"/>
+    <text x="460" y="192" text-anchor="middle" font-size="9" fill="white" font-weight="700">Featherwing Proto (stacked)</text>
+    <text x="460" y="205" text-anchor="middle" font-size="7" fill="#fbb">dAISy UART · float · Tier 0 · 1-Wire · V-divider</text>
+  </g>
+
+  <!-- 3-wire to dAISy -->
+  <g stroke="#c9a961" stroke-width="2" fill="none">
+    <line x1="300" y1="160" x2="340" y2="180"/>
+    <line x1="300" y1="165" x2="340" y2="185"/>
+    <line x1="300" y1="170" x2="340" y2="190"/>
+  </g>
+  <text x="320" y="212" text-anchor="middle" font-size="7" fill="#666">3-wire UART</text>
+
+  <!-- Qwiic daisy chain -->
+  <g>
+    <!-- INA228 -->
+    <rect x="100" y="240" width="110" height="65" fill="#2d3b21" stroke="#111" stroke-width="1.5" rx="4"/>
+    <text x="155" y="259" text-anchor="middle" font-size="11" fill="#dcffb7" font-weight="700">INA228</text>
+    <text x="155" y="272" text-anchor="middle" font-size="8" fill="#dcffb7">Qwiic · 0x40</text>
+    <text x="155" y="286" text-anchor="middle" font-size="8" fill="#dcffb7">house V + I</text>
+    <rect x="95" y="258" width="5" height="8" fill="#0b8fbf"/>
+    <rect x="210" y="258" width="5" height="8" fill="#0b8fbf"/>
+
+    <!-- BME280 -->
+    <rect x="240" y="240" width="110" height="65" fill="#2d3b21" stroke="#111" stroke-width="1.5" rx="4"/>
+    <text x="295" y="259" text-anchor="middle" font-size="11" fill="#dcffb7" font-weight="700">BME280</text>
+    <text x="295" y="272" text-anchor="middle" font-size="8" fill="#dcffb7">STEMMA QT</text>
+    <text x="295" y="286" text-anchor="middle" font-size="8" fill="#dcffb7">T + RH + baro</text>
+    <rect x="235" y="258" width="5" height="8" fill="#0b8fbf"/>
+    <rect x="350" y="258" width="5" height="8" fill="#0b8fbf"/>
+
+    <!-- ADS1115 -->
+    <rect x="380" y="240" width="110" height="65" fill="none" stroke="#0b8fbf" stroke-width="1.5" stroke-dasharray="4,3" rx="4"/>
+    <text x="435" y="259" text-anchor="middle" font-size="11" fill="#0b8fbf" font-weight="700">ADS1115</text>
+    <text x="435" y="272" text-anchor="middle" font-size="8" fill="#0b8fbf">Qwiic · 0x48</text>
+    <text x="435" y="286" text-anchor="middle" font-size="8" fill="#0b8fbf">tanks · Phase 8</text>
+    <rect x="375" y="258" width="5" height="8" fill="#0b8fbf"/>
+    <rect x="490" y="258" width="5" height="8" fill="#0b8fbf"/>
+
+    <!-- Qwiic cables -->
+    <g stroke="#0b8fbf" stroke-width="2" fill="none">
+      <!-- Feather → INA228 -->
+      <path d="M 544 137 L 544 230 L 110 230 L 110 258"/>
+      <!-- INA228 → BME280 -->
+      <path d="M 215 262 L 235 262"/>
+      <!-- BME280 → ADS1115 -->
+      <path d="M 355 262 L 375 262"/>
+    </g>
+    <text x="430" y="225" font-size="8" fill="#0b8fbf" font-weight="600">50/100/200mm STEMMA QT cables — plug-in</text>
+  </g>
+
+  <!-- 1-Wire terminal strip -->
+  <g>
+    <rect x="520" y="240" width="200" height="65" fill="#6b4423" stroke="#2c1a0a" stroke-width="1.5" rx="4"/>
+    <text x="620" y="260" text-anchor="middle" font-size="10" fill="#fff0d9" font-weight="700">1-Wire terminal on proto</text>
+    <text x="620" y="275" text-anchor="middle" font-size="8" fill="#fff0d9">3× pre-wired DS18B20 leads</text>
+    <text x="620" y="288" text-anchor="middle" font-size="8" fill="#fff0d9">(exit via grommet)</text>
+    <text x="620" y="300" text-anchor="middle" font-size="7" fill="#fff0d9">4.7 kΩ pullup on proto</text>
+  </g>
+
+  <!-- Bottom row: external connections -->
+  <g>
+    <text x="400" y="337" text-anchor="middle" font-size="10" fill="#666" font-weight="600">External connections on enclosure wall</text>
+    <g font-size="9" text-anchor="middle">
+      <!-- USB-C jack -->
+      <rect x="140" y="360" width="40" height="25" fill="#111" rx="3"/>
+      <rect x="148" y="367" width="24" height="10" fill="#444" rx="1"/>
+      <text x="160" y="402" fill="#444" font-weight="700">USB-C</text>
+      <text x="160" y="414" fill="#666">5V in (panel jack)</text>
+
+      <!-- BNC -->
+      <circle cx="260" cy="372" r="14" fill="#c0392b" stroke="#500"/>
+      <circle cx="260" cy="372" r="5" fill="#111"/>
+      <circle cx="260" cy="372" r="1.5" fill="#c9a961"/>
+      <text x="260" y="402" fill="#444" font-weight="700">BNC</text>
+      <text x="260" y="414" fill="#666">VHF/AIS</text>
+
+      <!-- 2-pin waterproof marine -->
+      <circle cx="380" cy="372" r="14" fill="#c0392b" stroke="#700"/>
+      <circle cx="374" cy="370" r="2" fill="white"/>
+      <circle cx="386" cy="374" r="2" fill="white"/>
+      <text x="380" y="402" fill="#444" font-weight="700">Bilge 2-pin</text>
+      <text x="380" y="414" fill="#666">waterproof</text>
+
+      <!-- Grommet for Qwiic + DS18B20 -->
+      <ellipse cx="500" cy="372" rx="18" ry="10" fill="#333"/>
+      <ellipse cx="500" cy="372" rx="10" ry="5" fill="#666"/>
+      <text x="500" y="402" fill="#444" font-weight="700">Grommet</text>
+      <text x="500" y="414" fill="#666">sensors exit</text>
+
+      <!-- SMA (Phase 8, dashed) -->
+      <circle cx="620" cy="372" r="14" fill="none" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <rect x="612" y="364" width="16" height="16" fill="none" stroke="#0891b2"/>
+      <text x="620" y="402" fill="#0891b2" font-weight="700">SMA</text>
+      <text x="620" y="414" fill="#0891b2">GPS (Ph 8)</text>
+    </g>
+  </g>
+
+</svg>
+</div>
+<p class="caption">Compared to v1.1 (Polycase WC-23F + DIN rail + 4-6 M12 bulkheads): half the size, no DIN rail, no M12 crimping, no DIY AC-opto wiring, 0 power components inside. Everything vulnerable-to-voltage lives outside.</p>
+</section>
+
+<!-- ═════════════════ 3. FRONT PANEL ═════════════════ -->
+<section>
+<h2>3. Enclosure Exterior — Simple Front Face</h2>
+<p>Only four external ports in v1. Phase 8 adds SMA for GPS. Everything plug-in.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg">
+  <rect x="60" y="40" width="680" height="200" fill="#ebe8dd" stroke="#333" stroke-width="3" rx="8"/>
+  <rect x="75" y="55" width="650" height="170" fill="none" stroke="#888" stroke-dasharray="3,3" rx="4"/>
+  <text x="400" y="32" text-anchor="middle" font-size="11" fill="#444" font-weight="600">FRONT PANEL · v2 simplified · drill template</text>
+
+  <g fill="#888" stroke="#333">
+    <circle cx="80" cy="60" r="4"/>
+    <circle cx="720" cy="60" r="4"/>
+    <circle cx="80" cy="220" r="4"/>
+    <circle cx="720" cy="220" r="4"/>
+  </g>
+
+  <text x="400" y="92" text-anchor="middle" font-size="18" font-weight="700" fill="#14253a" font-family="Georgia, serif">E V E N K E E L</text>
+  <text x="400" y="108" text-anchor="middle" font-size="9" fill="#666" letter-spacing="2">BoatMon-1</text>
+
+  <g font-size="11" text-anchor="middle" font-weight="600">
+    <!-- USB-C -->
+    <g>
+      <circle cx="160" cy="165" r="24" fill="#f8f6f0" stroke="#333" stroke-width="1.5"/>
+      <rect x="146" y="160" width="28" height="12" fill="#111" rx="3"/>
+      <rect x="150" y="163" width="20" height="6" fill="#444" rx="1"/>
+      <text x="160" y="202" fill="#444">USB-C</text>
+      <text x="160" y="215" fill="#666" font-size="8" font-weight="400">5V PD power in</text>
+    </g>
+    <!-- BNC -->
+    <g>
+      <circle cx="300" cy="165" r="24" fill="#f8f6f0" stroke="#333" stroke-width="1.5"/>
+      <circle cx="300" cy="165" r="15" fill="#c0392b" stroke="#500"/>
+      <circle cx="300" cy="165" r="6" fill="#111"/>
+      <circle cx="300" cy="165" r="2" fill="#c9a961"/>
+      <text x="300" y="202" fill="#444">BNC</text>
+      <text x="300" y="215" fill="#666" font-size="8" font-weight="400">VHF/AIS antenna</text>
+    </g>
+    <!-- 2-pin bilge -->
+    <g>
+      <circle cx="440" cy="165" r="24" fill="#f8f6f0" stroke="#333" stroke-width="1.5"/>
+      <circle cx="440" cy="165" r="14" fill="#c0392b"/>
+      <circle cx="434" cy="163" r="3" fill="white"/>
+      <circle cx="446" cy="167" r="3" fill="white"/>
+      <text x="440" y="202" fill="#444">2-pin</text>
+      <text x="440" y="215" fill="#666" font-size="8" font-weight="400">bilge float</text>
+    </g>
+    <!-- Grommet -->
+    <g>
+      <circle cx="580" cy="165" r="24" fill="#f8f6f0" stroke="#333" stroke-width="1.5"/>
+      <ellipse cx="580" cy="165" rx="14" ry="9" fill="#333"/>
+      <ellipse cx="580" cy="165" rx="8" ry="4" fill="#666"/>
+      <text x="580" y="202" fill="#444">Grommet</text>
+      <text x="580" y="215" fill="#666" font-size="8" font-weight="400">Qwiic + DS18B20 exit</text>
+    </g>
+    <!-- SMA (Phase 8) -->
+    <g>
+      <circle cx="680" cy="165" r="20" fill="#f8f6f0" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <rect x="672" y="157" width="16" height="16" fill="none" stroke="#0891b2"/>
+      <circle cx="680" cy="165" r="5" fill="#111"/>
+      <text x="680" y="200" fill="#0891b2" font-size="9">SMA (Ph 8)</text>
+      <text x="680" y="213" fill="#0891b2" font-size="8" font-weight="400">GPS antenna</text>
+    </g>
+  </g>
+
+  <!-- Status LEDs shown through front -->
+  <g>
+    <circle cx="160" cy="125" r="3" fill="#16a34a"/>
+    <text x="172" y="129" font-size="8" fill="#666">PWR</text>
+    <circle cx="205" cy="125" r="3" fill="#0891b2"/>
+    <text x="217" y="129" font-size="8" fill="#666">NET</text>
+    <circle cx="255" cy="125" r="3" fill="#d97706"/>
+    <text x="267" y="129" font-size="8" fill="#666">ALERT (Tier 0)</text>
+  </g>
+
+</svg>
+</div>
+<p class="caption">Four cutouts in v1 (USB-C, BNC, 2-pin waterproof, grommet) plus three pass-through LED holes. Off-the-shelf boxes often have the USB-C opening already; panel-mount BNC uses a step drill to open one side.</p>
+</section>
+
+<!-- ═════════════════ 4. FEATHER PINOUT CARD ═════════════════ -->
+<section>
+<h2>4. Adafruit ESP32-S3 Feather — Pinout Reference Card</h2>
+<p>Pin assignments for BoatMon-1. Most sensors ride I²C via the on-board STEMMA QT connector — no GPIO allocation needed for them.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dev board body -->
+  <rect x="300" y="40" width="300" height="420" fill="#0b5d2e" stroke="#073d1e" stroke-width="2" rx="8"/>
+
+  <!-- Title area -->
+  <text x="450" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#c9e8c4">Adafruit ESP32-S3 Feather</text>
+  <text x="450" y="87" text-anchor="middle" font-size="10" fill="#c9e8c4">#5477 · 8MB flash · 2MB PSRAM</text>
+
+  <!-- module (top area) -->
+  <rect x="350" y="105" width="200" height="90" fill="#1a1a1a" stroke="#000" stroke-width="1" rx="3"/>
+  <rect x="370" y="115" width="160" height="55" fill="#444" rx="2"/>
+  <text x="450" y="140" text-anchor="middle" fill="#ddd" font-size="11" font-weight="700">ESP32-S3-MINI</text>
+  <text x="450" y="155" text-anchor="middle" fill="#999" font-size="9">wifi · BLE 5.0</text>
+
+  <!-- STEMMA QT connector (top-right of board) -->
+  <rect x="555" y="115" width="30" height="14" fill="#0b8fbf" stroke="#075080" stroke-width="1" rx="2"/>
+  <g fill="#fff">
+    <circle cx="562" cy="122" r="1"/>
+    <circle cx="569" cy="122" r="1"/>
+    <circle cx="576" cy="122" r="1"/>
+    <circle cx="583" cy="122" r="1"/>
+  </g>
+  <text x="595" y="127" font-size="10" fill="#0b8fbf" font-weight="700">STEMMA QT (Qwiic)</text>
+  <text x="595" y="140" font-size="8" fill="#0b8fbf">I²C · SDA+SCL+3V3+GND</text>
+  <text x="595" y="153" font-size="8" fill="#dcffb7">→ INA228 → BME280 → ADS1115</text>
+
+  <!-- USB-C at top -->
+  <rect x="423" y="40" width="54" height="18" fill="#111" stroke="#000" rx="3"/>
+  <rect x="430" y="45" width="40" height="8" fill="#333" rx="1"/>
+  <text x="450" y="35" text-anchor="middle" fill="#444" font-size="10">USB-C power + programming</text>
+
+  <!-- LiPo header (optional) -->
+  <rect x="310" y="105" width="20" height="10" fill="#c0392b" rx="1"/>
+  <text x="325" y="128" font-size="8" fill="#c0392b">LiPo (unused)</text>
+
+  <!-- Buttons -->
+  <circle cx="320" cy="200" r="6" fill="#c9a961"/>
+  <text x="320" y="220" text-anchor="middle" font-size="8" fill="#c9a961">RST</text>
+  <circle cx="580" cy="200" r="6" fill="#c9a961"/>
+  <text x="580" y="220" text-anchor="middle" font-size="8" fill="#c9a961">BOOT</text>
+
+  <!-- LEFT HEADER -->
+  <g>
+    <rect x="295" y="230" width="10" height="230" fill="#222" stroke="#000"/>
+    <g font-size="11" font-weight="600" text-anchor="end" dominant-baseline="middle">
+      <g>
+        <rect x="295" y="240" width="10" height="10" fill="#c0392b"/>
+        <text x="288" y="246" fill="#c0392b">3.3V</text>
+      </g>
+      <g>
+        <rect x="295" y="258" width="10" height="10" fill="#888"/>
+        <text x="288" y="264" fill="#888">RST</text>
+      </g>
+      <g>
+        <rect x="295" y="276" width="10" height="10" fill="#c0392b"/>
+        <text x="288" y="282" fill="#c0392b">3.3V</text>
+      </g>
+      <g>
+        <rect x="295" y="294" width="10" height="10" fill="#111"/>
+        <text x="288" y="300" fill="#333">GND</text>
+      </g>
+      <g>
+        <rect x="295" y="312" width="10" height="10" fill="#0b8fbf"/>
+        <text x="288" y="318" fill="#0b8fbf">A0 (GPIO17) · ADC · Start batt V ÷</text>
+      </g>
+      <g>
+        <rect x="295" y="330" width="10" height="10" fill="#888"/>
+        <text x="288" y="336" fill="#888">A1 (GPIO18)</text>
+      </g>
+      <g>
+        <rect x="295" y="348" width="10" height="10" fill="#888"/>
+        <text x="288" y="354" fill="#888">A2 (GPIO14)</text>
+      </g>
+      <g>
+        <rect x="295" y="366" width="10" height="10" fill="#888"/>
+        <text x="288" y="372" fill="#888">A3 (GPIO12)</text>
+      </g>
+      <g>
+        <rect x="295" y="384" width="10" height="10" fill="#888"/>
+        <text x="288" y="390" fill="#888">A4 (GPIO6)</text>
+      </g>
+      <g>
+        <rect x="295" y="402" width="10" height="10" fill="#888"/>
+        <text x="288" y="408" fill="#888">A5 (GPIO5)</text>
+      </g>
+      <g>
+        <rect x="295" y="420" width="10" height="10" fill="#888"/>
+        <text x="288" y="426" fill="#888">SCK (GPIO36)</text>
+      </g>
+      <g>
+        <rect x="295" y="438" width="10" height="10" fill="#888"/>
+        <text x="288" y="444" fill="#888">MOSI (GPIO35)</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- RIGHT HEADER -->
+  <g>
+    <rect x="595" y="230" width="10" height="230" fill="#222" stroke="#000"/>
+    <g font-size="11" font-weight="600" dominant-baseline="middle">
+      <g>
+        <rect x="595" y="240" width="10" height="10" fill="#888"/>
+        <text x="612" y="246" fill="#888">BAT / VBAT</text>
+      </g>
+      <g>
+        <rect x="595" y="258" width="10" height="10" fill="#c0392b"/>
+        <text x="612" y="264" fill="#c0392b">EN</text>
+      </g>
+      <g>
+        <rect x="595" y="276" width="10" height="10" fill="#c0392b"/>
+        <text x="612" y="282" fill="#c0392b">USB (5V)</text>
+      </g>
+      <g>
+        <rect x="595" y="294" width="10" height="10" fill="#cc6633"/>
+        <text x="612" y="300" fill="#cc6633">RX (GPIO38) · UART1 RX ← dAISy TX</text>
+      </g>
+      <g>
+        <rect x="595" y="312" width="10" height="10" fill="#cc6633"/>
+        <text x="612" y="318" fill="#cc6633">TX (GPIO39) · UART1 TX (unused)</text>
+      </g>
+      <g>
+        <rect x="595" y="330" width="10" height="10" fill="#0b8fbf"/>
+        <text x="612" y="336" fill="#0b8fbf">SDA (GPIO3) · I²C data (shared Qwiic)</text>
+      </g>
+      <g>
+        <rect x="595" y="348" width="10" height="10" fill="#0b8fbf"/>
+        <text x="612" y="354" fill="#0b8fbf">SCL (GPIO4) · I²C clock</text>
+      </g>
+      <g>
+        <rect x="595" y="366" width="10" height="10" fill="#16a34a"/>
+        <text x="612" y="372" fill="#16a34a">D5 (GPIO5)</text>
+      </g>
+      <g>
+        <rect x="595" y="384" width="10" height="10" fill="#d97706"/>
+        <text x="612" y="390" fill="#d97706">D6 (GPIO6) · 1-Wire bus</text>
+      </g>
+      <g>
+        <rect x="595" y="402" width="10" height="10" fill="#16a34a"/>
+        <text x="612" y="408" fill="#16a34a">D9 (GPIO9) · Bilge float</text>
+      </g>
+      <g>
+        <rect x="595" y="420" width="10" height="10" fill="#db2777"/>
+        <text x="612" y="426" fill="#db2777">D10 (GPIO10) · Tier 0 Buzzer</text>
+      </g>
+      <g>
+        <rect x="595" y="438" width="10" height="10" fill="#db2777"/>
+        <text x="612" y="444" fill="#db2777">D11 (GPIO11) · Tier 0 LED</text>
+      </g>
+      <g>
+        <rect x="595" y="456" width="10" height="10" fill="#888"/>
+        <text x="612" y="462" fill="#888">D12 (GPIO12) · spare · GPS (Ph 8)</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Legend -->
+  <g font-size="11" transform="translate(30,60)">
+    <text x="0" y="0" font-weight="700" fill="#444">Function key</text>
+    <g transform="translate(0,18)">
+      <rect x="0" y="0" width="14" height="10" fill="#c0392b"/>
+      <text x="20" y="9" fill="#333">Power rails</text>
+    </g>
+    <g transform="translate(0,36)">
+      <rect x="0" y="0" width="14" height="10" fill="#0b8fbf"/>
+      <text x="20" y="9" fill="#333">I²C / STEMMA QT / ADC</text>
+    </g>
+    <g transform="translate(0,54)">
+      <rect x="0" y="0" width="14" height="10" fill="#cc6633"/>
+      <text x="20" y="9" fill="#333">UART to dAISy</text>
+    </g>
+    <g transform="translate(0,72)">
+      <rect x="0" y="0" width="14" height="10" fill="#d97706"/>
+      <text x="20" y="9" fill="#333">1-Wire (DS18B20)</text>
+    </g>
+    <g transform="translate(0,90)">
+      <rect x="0" y="0" width="14" height="10" fill="#16a34a"/>
+      <text x="20" y="9" fill="#333">Discrete GPIO input</text>
+    </g>
+    <g transform="translate(0,108)">
+      <rect x="0" y="0" width="14" height="10" fill="#db2777"/>
+      <text x="20" y="9" fill="#333">Tier 0 alarm output</text>
+    </g>
+    <g transform="translate(0,126)">
+      <rect x="0" y="0" width="14" height="10" fill="#888"/>
+      <text x="20" y="9" fill="#333">Unused / reserved</text>
+    </g>
+  </g>
+
+  <!-- Notes on right -->
+  <g font-size="10" transform="translate(730,60)">
+    <text x="0" y="0" font-weight="700" fill="#444">Notes</text>
+    <text x="0" y="18" fill="#333">· BLE 5.0 built-in</text>
+    <text x="0" y="34" fill="#333">· WiFi 2.4 GHz</text>
+    <text x="0" y="50" fill="#333">· STEMMA QT = Qwiic</text>
+    <text x="0" y="66" fill="#333">· LiPo charger onboard</text>
+    <text x="0" y="82" fill="#333">· ~250 mA typ @ 5V</text>
+    <text x="0" y="98" fill="#333">· <code>board: adafruit_feather_esp32s3</code></text>
+    <text x="0" y="114" fill="#333">· Featherwing-compatible</text>
+  </g>
+
+</svg>
+</div>
+</section>
+
+<!-- ═════════════════ 5. POWER CHAIN VISUAL ═════════════════ -->
+<section>
+<h2>5. Power Chain — Externalized USB-C</h2>
+<p>Radically simpler than v1.1. The boat-node enclosure has one USB-C input. Surge protection and buck regulation live outside in commodity marine hardware.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 1000 260" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- Outside enclosure area indicator -->
+  <rect x="20" y="50" width="640" height="180" fill="#fff5ec" stroke="#d97706" stroke-width="1" stroke-dasharray="6,4" rx="8"/>
+  <text x="30" y="70" font-size="11" fill="#d97706" font-weight="700">OUTSIDE the boat-node enclosure — commodity marine hardware</text>
+
+  <rect x="680" y="50" width="300" height="180" fill="#e8f4e8" stroke="#16a34a" stroke-width="1" stroke-dasharray="6,4" rx="8"/>
+  <text x="690" y="70" font-size="11" fill="#16a34a" font-weight="700">INSIDE — just the Feather</text>
+
+  <!-- Stage 1: House bank -->
+  <g>
+    <rect x="40" y="110" width="120" height="90" fill="#2d5a3d" stroke="#14391f" stroke-width="2" rx="6"/>
+    <text x="100" y="135" text-anchor="middle" font-size="13" font-weight="700" fill="#c9e8c4">House Bank</text>
+    <text x="100" y="155" text-anchor="middle" font-size="10" fill="#c9e8c4">300 Ah</text>
+    <text x="100" y="180" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">12V</text>
+  </g>
+  <line x1="160" y1="155" x2="200" y2="155" stroke="#444" stroke-width="3" marker-end="url(#arr)"/>
+
+  <!-- Scanstrut -->
+  <g>
+    <rect x="205" y="100" width="180" height="110" fill="#14253a" stroke="#0a1624" stroke-width="2" rx="6"/>
+    <text x="295" y="125" text-anchor="middle" font-size="12" font-weight="700" fill="#c9a961">Scanstrut ROKK Charge+</text>
+    <text x="295" y="142" text-anchor="middle" font-size="10" fill="#c9a961">12/24V → USB-C PD</text>
+    <text x="295" y="162" text-anchor="middle" font-size="9" fill="#ddd">ISO 7637-2 surge protection</text>
+    <text x="295" y="176" text-anchor="middle" font-size="9" fill="#ddd">reverse polarity + over-current</text>
+    <text x="295" y="195" text-anchor="middle" font-size="11" font-weight="800" fill="#16a34a">5V / 60W PD</text>
+  </g>
+  <line x1="385" y1="155" x2="425" y2="155" stroke="#444" stroke-width="3" marker-end="url(#arr)"/>
+
+  <!-- OR optional UPS -->
+  <g>
+    <rect x="430" y="75" width="160" height="70" fill="#fffbeb" stroke="#d97706" stroke-width="2" stroke-dasharray="6,4" rx="6"/>
+    <text x="510" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">OPTIONAL UPS</text>
+    <text x="510" y="112" text-anchor="middle" font-size="10" fill="#92400e">Anker 733 PowerCore</text>
+    <text x="510" y="128" text-anchor="middle" font-size="9" fill="#92400e">10 Ah pass-through</text>
+    <text x="510" y="140" text-anchor="middle" font-size="8" fill="#92400e">~20h runtime backup</text>
+  </g>
+  <path d="M 425 145 Q 445 100 475 85" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6,4"/>
+
+  <!-- default direct path -->
+  <g>
+    <rect x="430" y="170" width="160" height="40" fill="#f4efe0" stroke="#888" stroke-width="1.5" rx="4"/>
+    <text x="510" y="187" text-anchor="middle" font-size="10" font-weight="700" fill="#444">USB-C cable</text>
+    <text x="510" y="200" text-anchor="middle" font-size="8" fill="#666">short, quality · Anker</text>
+  </g>
+  <line x1="590" y1="190" x2="630" y2="190" stroke="#444" stroke-width="3" marker-end="url(#arr)"/>
+
+  <!-- Feather -->
+  <g>
+    <rect x="705" y="140" width="250" height="80" fill="#0b5d2e" stroke="#073d1e" stroke-width="2" rx="6"/>
+    <text x="830" y="165" text-anchor="middle" font-size="12" font-weight="700" fill="#c9e8c4">BoatMon-1 — ESP32-S3 Feather</text>
+    <text x="830" y="185" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">5V</text>
+    <text x="830" y="205" text-anchor="middle" font-size="10" fill="#c9e8c4">~250 mA typ · ~400 mA peak</text>
+  </g>
+  <!-- USB-C icon on Feather -->
+  <rect x="700" y="183" width="10" height="12" fill="#111" rx="1"/>
+  <rect x="701" y="186" width="8" height="6" fill="#333"/>
+
+  <!-- labels -->
+  <g font-size="9" fill="#666" text-anchor="middle">
+    <text x="100" y="220">source</text>
+    <text x="295" y="225">marine USB-C outlet</text>
+    <text x="830" y="240">Feather consumes 5V PD</text>
+  </g>
+
+  <!-- Daily budget label -->
+  <g transform="translate(20,30)">
+    <text x="0" y="0" font-size="12" font-weight="700" fill="#14253a">Daily budget: ~10 Ah/day (Feather + Pi + sensors) — 3.3% of 300 Ah bank</text>
+  </g>
+
+</svg>
+</div>
+<p class="caption"><strong>Everything risky lives outside.</strong> No fuse, TVS, bulk cap, or buck inside the boat-node enclosure. Scanstrut handles all of it — and if it fails, it's a 10-minute swap with a screwdriver, not a board-level repair.</p>
+</section>
+
+<!-- ═════════════════ 6. SENSOR WIRING SCHEMATIC ═════════════════ -->
+<section>
+<h2>6. Sensor Wiring — Qwiic Daisy-Chain</h2>
+<p>Every I²C sensor connects by plugging in a 50/100/200 mm STEMMA QT cable. No I²C soldering. Only the dAISy UART, DS18B20 bus, bilge float, Tier 0, and starter-V divider require the single Featherwing Proto solder session.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 1000 540" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Central Feather -->
+  <g>
+    <rect x="400" y="220" width="200" height="140" fill="#0b5d2e" stroke="#073d1e" stroke-width="2" rx="6"/>
+    <text x="500" y="248" text-anchor="middle" font-size="14" font-weight="700" fill="#c9e8c4">BoatMon-1</text>
+    <text x="500" y="265" text-anchor="middle" font-size="11" fill="#c9e8c4">ESP32-S3 Feather</text>
+
+    <!-- STEMMA QT jack on Feather -->
+    <rect x="585" y="250" width="14" height="10" fill="#0b8fbf" stroke="#075080"/>
+    <text x="620" y="258" font-size="8" fill="#0b8fbf">STEMMA QT</text>
+
+    <!-- Featherwing proto strip -->
+    <rect x="415" y="310" width="170" height="40" fill="#8b1e1e" stroke="#500" stroke-width="1" rx="2"/>
+    <text x="500" y="325" text-anchor="middle" font-size="9" fill="white" font-weight="700">Featherwing Proto</text>
+    <text x="500" y="340" text-anchor="middle" font-size="7" fill="#fbb">soldered terminals for discretes</text>
+
+    <!-- Pin stubs -->
+    <g font-size="8" fill="#fff">
+      <line x1="400" y1="280" x2="390" y2="280" stroke="#fff"/><text x="398" y="283" text-anchor="end">RX</text>
+      <line x1="400" y1="320" x2="390" y2="320" stroke="#fff"/><text x="398" y="323" text-anchor="end">D6 / D9 / D10-11 / A0</text>
+      <line x1="600" y1="320" x2="610" y2="320" stroke="#fff"/><text x="612" y="323">from proto</text>
+    </g>
+  </g>
+
+  <!-- dAISy (top) -->
+  <g>
+    <rect x="400" y="60" width="200" height="80" fill="#7b2d2d" stroke="#4d1a1a" stroke-width="1.5" rx="4"/>
+    <text x="500" y="85" text-anchor="middle" font-size="12" font-weight="700" fill="#fdd5d5">dAISy HAT</text>
+    <text x="500" y="105" text-anchor="middle" font-size="9" fill="#fdd5d5">VHF AIS receiver</text>
+    <text x="500" y="122" text-anchor="middle" font-size="8" fill="#c9a961">3-wire UART → Feather RX pin</text>
+  </g>
+  <line x1="500" y1="140" x2="500" y2="220" stroke="#c0392b" stroke-width="2"/>
+  <text x="510" y="180" font-size="9" fill="#c0392b">UART 38400</text>
+
+  <!-- Qwiic chain to the right -->
+  <g>
+    <!-- cable from STEMMA QT to first sensor -->
+    <path d="M 599 255 Q 680 255 680 115" fill="none" stroke="#0b8fbf" stroke-width="2.5"/>
+
+    <!-- INA228 -->
+    <rect x="650" y="50" width="300" height="70" fill="#2d3b21" stroke="#111" stroke-width="1.5" rx="6"/>
+    <text x="800" y="72" text-anchor="middle" font-size="13" font-weight="700" fill="#dcffb7">INA228 Qwiic · House bank V + I</text>
+    <text x="800" y="90" text-anchor="middle" font-size="9" fill="#dcffb7">Adafruit #5832 · I²C 0x40</text>
+    <rect x="670" y="97" width="40" height="16" fill="#999" stroke="#333" stroke-width="1"/>
+    <text x="690" y="109" text-anchor="middle" font-size="8" fill="#333">100A</text>
+    <line x1="710" y1="105" x2="780" y2="105" stroke="#999" stroke-width="2"/>
+    <text x="745" y="101" text-anchor="middle" font-size="7" fill="#666">in-line w/ house –</text>
+    <!-- Qwiic jacks -->
+    <rect x="645" y="77" width="5" height="8" fill="#0b8fbf"/>
+    <rect x="950" y="77" width="5" height="8" fill="#0b8fbf"/>
+
+    <!-- INA228 → BME280 cable -->
+    <path d="M 955 81 Q 980 81 980 175 Q 980 200 955 200" fill="none" stroke="#0b8fbf" stroke-width="2.5"/>
+
+    <!-- BME280 -->
+    <rect x="650" y="170" width="300" height="60" fill="#2d3b21" stroke="#111" stroke-width="1.5" rx="6"/>
+    <text x="800" y="192" text-anchor="middle" font-size="13" font-weight="700" fill="#dcffb7">BME280 STEMMA QT · cabin T/RH/baro</text>
+    <text x="800" y="210" text-anchor="middle" font-size="9" fill="#dcffb7">Adafruit #2652 · I²C 0x76</text>
+    <rect x="645" y="195" width="5" height="8" fill="#0b8fbf"/>
+    <rect x="950" y="195" width="5" height="8" fill="#0b8fbf"/>
+
+    <!-- BME280 → ADS1115 cable -->
+    <path d="M 645 200 Q 630 200 630 280 Q 630 295 645 295" fill="none" stroke="#0b8fbf" stroke-width="2" stroke-dasharray="4,3"/>
+
+    <!-- ADS1115 (dashed - Phase 8) -->
+    <rect x="650" y="270" width="300" height="60" fill="none" stroke="#0b8fbf" stroke-width="1.5" stroke-dasharray="5,4" rx="6"/>
+    <text x="800" y="292" text-anchor="middle" font-size="13" font-weight="700" fill="#0b8fbf">ADS1115 Qwiic · tanks · Phase 8</text>
+    <text x="800" y="310" text-anchor="middle" font-size="9" fill="#0b8fbf">Adafruit #1085 · I²C 0x48 · 4-ch 16-bit ADC</text>
+
+    <text x="800" y="350" text-anchor="middle" font-size="10" fill="#0b8fbf" font-weight="700">— Qwiic chain: three cables, zero solder —</text>
+  </g>
+
+  <!-- DS18B20s (top-left) -->
+  <g>
+    <rect x="40" y="60" width="280" height="70" fill="#d97706" stroke="#92400e" stroke-width="1.5" rx="6"/>
+    <text x="180" y="85" text-anchor="middle" font-size="13" font-weight="700" fill="white">1-Wire · DS18B20 × 3 (pre-wired)</text>
+    <text x="180" y="104" text-anchor="middle" font-size="10" fill="white">Adafruit #381 · 3m waterproof lead</text>
+    <text x="180" y="120" text-anchor="middle" font-size="9" fill="#ffe7bd">4.7 kΩ pullup soldered on proto</text>
+  </g>
+  <path d="M 320 90 Q 380 90 415 320" fill="none" stroke="#d97706" stroke-width="2"/>
+  <text x="350" y="80" font-size="9" fill="#d97706">data → D6 (GPIO6)</text>
+
+  <!-- Bilge float (left middle) -->
+  <g>
+    <rect x="40" y="250" width="200" height="60" fill="#c0392b" stroke="#8b1e1e" stroke-width="1.5" rx="6"/>
+    <text x="140" y="273" text-anchor="middle" font-size="12" font-weight="700" fill="white">Bilge float switch</text>
+    <text x="140" y="290" text-anchor="middle" font-size="9" fill="white">Rule-A-Matic Plus, pre-wired</text>
+    <text x="140" y="302" text-anchor="middle" font-size="8" fill="#fbb">switches to GND · D9</text>
+  </g>
+  <line x1="240" y1="280" x2="415" y2="330" stroke="#c0392b" stroke-width="2"/>
+
+  <!-- Starter V divider -->
+  <g>
+    <rect x="40" y="330" width="200" height="60" fill="#3a4b20" stroke="#111" stroke-width="1.5" rx="6"/>
+    <text x="140" y="353" text-anchor="middle" font-size="11" font-weight="700" fill="#dcffb7">Starter V divider</text>
+    <text x="140" y="370" text-anchor="middle" font-size="9" fill="#dcffb7">100kΩ + 33kΩ on proto</text>
+    <text x="140" y="382" text-anchor="middle" font-size="8" fill="#dcffb7">→ A0 (GPIO17, ADC)</text>
+  </g>
+  <line x1="240" y1="360" x2="400" y2="340" stroke="#0b8fbf" stroke-width="2"/>
+
+  <!-- Tier 0 -->
+  <g>
+    <rect x="40" y="410" width="200" height="70" fill="#14532d" stroke="#052e13" stroke-width="2" rx="6"/>
+    <text x="140" y="432" text-anchor="middle" font-size="12" font-weight="700" fill="#bbf7d0">Tier 0 alarm</text>
+    <circle cx="80" cy="456" r="10" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.5"/>
+    <text x="80" y="475" text-anchor="middle" font-size="8" fill="#bbf7d0">LED</text>
+    <circle cx="140" cy="456" r="11" fill="#1a1a1a" stroke="#000" stroke-width="1.5"/>
+    <circle cx="140" cy="456" r="5" fill="#333"/>
+    <text x="140" y="475" text-anchor="middle" font-size="8" fill="#bbf7d0">buzzer</text>
+    <text x="205" y="452" text-anchor="middle" font-size="8" fill="#bbf7d0">D10 / D11</text>
+    <text x="205" y="463" text-anchor="middle" font-size="7" fill="#bbf7d0">GPIO-direct</text>
+  </g>
+  <line x1="240" y1="445" x2="415" y2="340" stroke="#22c55e" stroke-width="2"/>
+
+  <!-- Shelly plugs (external AC detection, shown separate) -->
+  <g>
+    <rect x="40" y="500" width="460" height="30" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3" rx="4"/>
+    <text x="270" y="520" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">AC detection — Shelly Plus Plug S × 2 (external, WiFi-MQTT, not wired to Feather)</text>
+  </g>
+
+  <!-- Victron BLE -->
+  <g>
+    <rect x="650" y="360" width="300" height="50" fill="none" stroke="#0891b2" stroke-width="1.5" stroke-dasharray="5,4" rx="6"/>
+    <text x="800" y="380" text-anchor="middle" font-size="11" font-weight="700" fill="#0891b2">Victron SmartShunt (Phase 7)</text>
+    <text x="800" y="396" text-anchor="middle" font-size="9" fill="#0891b2">BLE advertisements — Feather's built-in radio</text>
+  </g>
+
+  <!-- GPS -->
+  <g>
+    <rect x="650" y="440" width="300" height="50" fill="none" stroke="#cc6633" stroke-width="1.5" stroke-dasharray="5,4" rx="6"/>
+    <text x="800" y="460" text-anchor="middle" font-size="11" font-weight="700" fill="#cc6633">Adafruit Ultimate GPS (Phase 8)</text>
+    <text x="800" y="476" text-anchor="middle" font-size="9" fill="#cc6633">UART via D12 (soft-UART) + SMA antenna</text>
+  </g>
+
+</svg>
+</div>
+</section>
+
+<!-- ═════════════════ 7. SYSTEM TOPOLOGY ═════════════════ -->
+<section>
+<h2>7. Whole-System Topology — Updated</h2>
+<p>Same three-layer alert model as before, but with Feather + Qwiic in place of DevKitC-1, Shelly plugs in place of opto-isolators, Scanstrut external in place of in-enclosure power components.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Boat cluster -->
+  <g>
+    <rect x="30" y="40" width="380" height="500" fill="#f0f7fa" stroke="#0891b2" stroke-width="2" stroke-dasharray="6,3" rx="10"/>
+    <text x="220" y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#0891b2">⛵ HUNTER 41DS</text>
+
+    <rect x="55" y="80" width="150" height="60" fill="#d97706" stroke="#92400e" stroke-width="1.5" rx="5"/>
+    <text x="130" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="white">Sensors</text>
+    <text x="130" y="115" text-anchor="middle" font-size="8" fill="white">DS18B20 · float · V-divider</text>
+    <text x="130" y="128" text-anchor="middle" font-size="8" fill="white">+ Victron BLE (Ph7)</text>
+
+    <rect x="225" y="80" width="155" height="60" fill="#2d3b21" stroke="#111" stroke-width="1.5" rx="5"/>
+    <text x="302" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#dcffb7">Qwiic chain</text>
+    <text x="302" y="115" text-anchor="middle" font-size="8" fill="#dcffb7">INA228 → BME280</text>
+    <text x="302" y="128" text-anchor="middle" font-size="8" fill="#dcffb7">→ ADS1115 (Ph8)</text>
+
+    <rect x="55" y="155" width="155" height="50" fill="#7b2d2d" stroke="#4d1a1a" stroke-width="1.5" rx="5"/>
+    <text x="132" y="177" text-anchor="middle" font-size="10" font-weight="700" fill="white">dAISy HAT</text>
+    <text x="132" y="192" text-anchor="middle" font-size="8" fill="white">3-wire UART</text>
+
+    <!-- Feather core -->
+    <rect x="85" y="220" width="270" height="80" fill="#0b5d2e" stroke="#073d1e" stroke-width="2" rx="6"/>
+    <text x="220" y="245" text-anchor="middle" font-size="12" font-weight="700" fill="#c9e8c4">BoatMon-1 · ESP32-S3 Feather</text>
+    <text x="220" y="262" text-anchor="middle" font-size="9" fill="#c9e8c4">ESPHome firmware</text>
+    <text x="220" y="278" text-anchor="middle" font-size="9" fill="#c9e8c4">MQTT · AIS TCP :6638 · web_server</text>
+    <text x="220" y="292" text-anchor="middle" font-size="8" fill="#c9e8c4">Tier 0 GPIO · Pushover HTTP direct</text>
+
+    <line x1="130" y1="140" x2="180" y2="220" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+    <line x1="302" y1="140" x2="260" y2="220" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+    <line x1="132" y1="205" x2="160" y2="220" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <!-- Tier 0 -->
+    <rect x="55" y="320" width="150" height="45" fill="#14532d" stroke="#052e13" stroke-width="1.5" rx="5"/>
+    <text x="130" y="340" text-anchor="middle" font-size="10" font-weight="700" fill="#bbf7d0">Tier 0 LED + buzzer</text>
+    <text x="130" y="355" text-anchor="middle" font-size="8" fill="#bbf7d0">GPIO-direct, always on</text>
+    <line x1="170" y1="300" x2="150" y2="320" stroke="#16a34a" stroke-width="2" marker-end="url(#arr2)"/>
+
+    <!-- Boat Pi -->
+    <rect x="225" y="320" width="155" height="70" fill="#7c3aed" stroke="#4c1d95" stroke-width="1.5" rx="5"/>
+    <text x="302" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="white">Raspberry Pi 4</text>
+    <text x="302" y="358" text-anchor="middle" font-size="8" fill="white">HA OS · Mosquitto (primary)</text>
+    <text x="302" y="372" text-anchor="middle" font-size="8" fill="white">USB-powered from Scanstrut</text>
+    <line x1="260" y1="300" x2="290" y2="320" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <!-- Shelly plugs -->
+    <rect x="55" y="405" width="325" height="50" fill="none" stroke="#7c3aed" stroke-width="2" rx="5"/>
+    <text x="217" y="425" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed">Shelly Plus Plug S × 2 — shore + gen</text>
+    <text x="217" y="442" text-anchor="middle" font-size="8" fill="#7c3aed">UL-listed · native MQTT over boat WiFi</text>
+
+    <!-- Router -->
+    <rect x="55" y="465" width="325" height="50" fill="#1e3a5f" stroke="#102340" stroke-width="1.5" rx="5"/>
+    <text x="217" y="485" text-anchor="middle" font-size="11" font-weight="700" fill="#c9e0f5">X75 LTE Router · WG client · fallback AP</text>
+    <text x="217" y="502" text-anchor="middle" font-size="9" fill="#c9e0f5">carries Feather + Pi + Shelly MQTT to home</text>
+    <line x1="302" y1="390" x2="220" y2="465" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+    <line x1="217" y1="455" x2="217" y2="465" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <!-- Scanstrut / power -->
+    <rect x="55" y="525" width="325" height="20" fill="#14253a" stroke="#0a1624" stroke-width="1" rx="3"/>
+    <text x="217" y="540" text-anchor="middle" font-size="9" font-weight="700" fill="#c9a961">Scanstrut ROKK Charge+ USB-C (external, feeds Feather + Pi)</text>
+  </g>
+
+  <!-- LTE + Pushover -->
+  <g>
+    <g transform="translate(490,230)">
+      <polygon points="0,40 -15,0 15,0" fill="#555" stroke="#222"/>
+      <line x1="0" y1="0" x2="0" y2="-10" stroke="#555" stroke-width="2"/>
+      <circle cx="0" cy="-12" r="3" fill="#c0392b"/>
+      <path d="M-8 -6 Q -12 -14 -8 -20" fill="none" stroke="#555" stroke-width="1.2"/>
+      <path d="M8 -6 Q 12 -14 8 -20" fill="none" stroke="#555" stroke-width="1.2"/>
+      <text x="0" y="55" text-anchor="middle" font-size="9" fill="#666">LTE</text>
+    </g>
+    <g transform="translate(490,340)">
+      <rect x="-40" y="0" width="80" height="44" fill="#db2777" stroke="#831843" stroke-width="1.5" rx="5"/>
+      <text x="0" y="18" text-anchor="middle" font-size="10" font-weight="700" fill="white">Pushover</text>
+      <text x="0" y="33" text-anchor="middle" font-size="8" fill="white">($5 one-time)</text>
+    </g>
+  </g>
+  <path d="M380 490 Q 440 350 490 260" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#arr2)"/>
+  <text x="455" y="280" font-size="9" fill="#16a34a" font-weight="700">WG tunnel</text>
+  <path d="M355 275 Q 430 310 490 355" fill="none" stroke="#db2777" stroke-width="2" marker-end="url(#arr2)"/>
+  <text x="420" y="305" font-size="9" fill="#db2777" font-weight="700">L2 direct alert</text>
+
+  <!-- Home cluster -->
+  <g>
+    <rect x="630" y="40" width="380" height="500" fill="#fff7e6" stroke="#d97706" stroke-width="2" stroke-dasharray="6,3" rx="10"/>
+    <text x="820" y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#d97706">🏠 HOME</text>
+
+    <rect x="660" y="90" width="320" height="55" fill="#1e3a5f" stroke="#102340" stroke-width="1.5" rx="5"/>
+    <text x="820" y="110" text-anchor="middle" font-size="11" font-weight="700" fill="#c9e0f5">Home Router · WG SERVER</text>
+    <text x="820" y="128" text-anchor="middle" font-size="8" fill="#c9e0f5">UDP :51820 hardened · no other ports</text>
+    <text x="820" y="140" text-anchor="middle" font-size="8" fill="#c9e0f5">Port-fwd to HA Green</text>
+
+    <rect x="720" y="175" width="200" height="90" fill="#16a34a" stroke="#14532d" stroke-width="2" rx="6"/>
+    <text x="820" y="200" text-anchor="middle" font-size="12" font-weight="700" fill="white">Home Assistant Green</text>
+    <text x="820" y="217" text-anchor="middle" font-size="9" fill="white">$99 · ~3W</text>
+    <text x="820" y="233" text-anchor="middle" font-size="9" fill="white">Mosquitto bridge · HA core</text>
+    <text x="820" y="248" text-anchor="middle" font-size="9" fill="white">Lovelace · automations · recorder</text>
+    <text x="820" y="261" text-anchor="middle" font-size="8" fill="white">OPTIONAL: AIS forwarder add-on</text>
+    <line x1="820" y1="145" x2="820" y2="175" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <rect x="660" y="305" width="150" height="65" fill="white" stroke="#d97706" stroke-width="1.5" rx="5"/>
+    <text x="735" y="328" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">📱 Kelly's tablet</text>
+    <text x="735" y="345" text-anchor="middle" font-size="8" fill="#d97706">Fully Kiosk PWA</text>
+    <text x="735" y="359" text-anchor="middle" font-size="8" fill="#d97706">"How's My Boat"</text>
+    <line x1="780" y1="265" x2="735" y2="305" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <rect x="830" y="305" width="150" height="65" fill="white" stroke="#14253a" stroke-width="1.5" rx="5"/>
+    <text x="905" y="328" text-anchor="middle" font-size="10" font-weight="700" fill="#14253a">💻 Pete home</text>
+    <text x="905" y="345" text-anchor="middle" font-size="8" fill="#14253a">ESPHome OTA, admin</text>
+    <text x="905" y="359" text-anchor="middle" font-size="8" fill="#14253a">Power dashboard</text>
+    <line x1="860" y1="265" x2="900" y2="305" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <rect x="660" y="395" width="320" height="55" fill="#f4efe0" stroke="#888" stroke-width="1" rx="5"/>
+    <text x="820" y="415" text-anchor="middle" font-size="10" font-weight="700" fill="#444">HA Companion push · TTS · SMTP email</text>
+    <text x="820" y="432" text-anchor="middle" font-size="8" fill="#444">Google Cast · Pete's own SMTP</text>
+    <text x="820" y="445" text-anchor="middle" font-size="8" fill="#888">OPT: Twilio SMS if user subscribes</text>
+    <line x1="820" y1="370" x2="820" y2="395" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <rect x="720" y="480" width="200" height="45" fill="white" stroke="#14253a" stroke-width="1.5" rx="5"/>
+    <text x="820" y="500" text-anchor="middle" font-size="10" font-weight="700" fill="#14253a">📱 Pete's phone (WG + Pushover)</text>
+    <text x="820" y="515" text-anchor="middle" font-size="8" fill="#14253a">anywhere</text>
+    <line x1="820" y1="450" x2="820" y2="480" stroke="#666" stroke-width="1.5" marker-end="url(#arr2)"/>
+  </g>
+
+  <!-- L2 Pushover to Pete -->
+  <path d="M530 340 Q 625 430 720 510" fill="none" stroke="#db2777" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arr2)"/>
+
+  <!-- Legend -->
+  <g transform="translate(1040,80)">
+    <text x="0" y="0" font-size="11" font-weight="700" fill="#14253a">Alert layers</text>
+    <rect x="0" y="14" width="14" height="10" fill="#16a34a"/>
+    <text x="20" y="23" font-size="9">L1 Tier 0 GPIO</text>
+    <rect x="0" y="32" width="14" height="10" fill="#db2777"/>
+    <text x="20" y="41" font-size="9">L2 Pushover direct</text>
+    <rect x="0" y="50" width="14" height="10" fill="#666"/>
+    <text x="20" y="59" font-size="9">L3 HA fan-out</text>
+  </g>
+
+</svg>
+</div>
+</section>
+
+<!-- ═════════════════ 8. SENSOR EXPANSION TIERS ═════════════════ -->
+<section>
+<h2>8. Sensor Expansion — Five-Tier Architecture</h2>
+<p>How EvenKeel scales from 5 sensors to 30+. Each tier is plug-together; never re-design the boat node — reach into the appropriate tier. Strategy details: <a href="../sensor-expansion.md">sensor-expansion.md</a>.</p>
+
+<div class="svg-frame">
+<svg viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrx" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- BoatMon-1 Feather at center-left -->
+  <g>
+    <rect x="50" y="320" width="200" height="100" fill="#0b5d2e" stroke="#073d1e" stroke-width="2" rx="8"/>
+    <text x="150" y="350" text-anchor="middle" font-size="14" font-weight="700" fill="#c9e8c4">BoatMon-1</text>
+    <text x="150" y="370" text-anchor="middle" font-size="11" fill="#c9e8c4">ESP32-S3 Feather</text>
+    <text x="150" y="390" text-anchor="middle" font-size="9" fill="#c9e8c4">+ MQTT broker on Pi</text>
+    <text x="150" y="406" text-anchor="middle" font-size="9" fill="#c9e8c4">(routes all tiers to HA)</text>
+  </g>
+
+  <!-- Tier 1 -->
+  <g>
+    <rect x="320" y="40" width="820" height="110" fill="#dcfce7" stroke="#16a34a" stroke-width="2" rx="8"/>
+    <text x="340" y="65" font-size="13" font-weight="700" fill="#16a34a">TIER 1 — Direct Qwiic chain</text>
+    <text x="340" y="83" font-size="10" fill="#166534">≤1m · 3-5 sensors · STEMMA QT plug-in cables · zero solder · $5-15 per sensor</text>
+    <!-- example sensors -->
+    <g font-size="9" fill="#166534">
+      <rect x="350" y="100" width="100" height="36" fill="white" stroke="#16a34a" rx="4"/>
+      <text x="400" y="115" text-anchor="middle" font-weight="700">INA228</text>
+      <text x="400" y="128" text-anchor="middle">house V+I</text>
+
+      <rect x="460" y="100" width="100" height="36" fill="white" stroke="#16a34a" rx="4"/>
+      <text x="510" y="115" text-anchor="middle" font-weight="700">BME280</text>
+      <text x="510" y="128" text-anchor="middle">cabin T/RH</text>
+
+      <rect x="570" y="100" width="100" height="36" fill="white" stroke="#16a34a" rx="4"/>
+      <text x="620" y="115" text-anchor="middle" font-weight="700">SCD41</text>
+      <text x="620" y="128" text-anchor="middle">cabin CO₂</text>
+
+      <rect x="680" y="100" width="100" height="36" fill="white" stroke="#16a34a" rx="4"/>
+      <text x="730" y="115" text-anchor="middle" font-weight="700">VEML7700</text>
+      <text x="730" y="128" text-anchor="middle">lux meter</text>
+
+      <rect x="790" y="100" width="100" height="36" fill="white" stroke="#16a34a" rx="4"/>
+      <text x="840" y="115" text-anchor="middle" font-weight="700">ICM20948</text>
+      <text x="840" y="128" text-anchor="middle">9-DOF IMU</text>
+
+      <rect x="900" y="100" width="100" height="36" fill="white" stroke="#16a34a" rx="4" stroke-dasharray="3,2"/>
+      <text x="950" y="115" text-anchor="middle" font-weight="700">+more</text>
+      <text x="950" y="128" text-anchor="middle">just plug in</text>
+    </g>
+  </g>
+  <!-- Feather → Tier 1 -->
+  <path d="M 250 360 Q 280 150 340 105" fill="none" stroke="#16a34a" stroke-width="3" marker-end="url(#arrx)"/>
+  <text x="280" y="195" font-size="9" fill="#16a34a" font-weight="700">STEMMA QT</text>
+
+  <!-- Tier 2 -->
+  <g>
+    <rect x="320" y="170" width="820" height="110" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="8"/>
+    <text x="340" y="195" font-size="13" font-weight="700" fill="#92400e">TIER 2 — TCA9548A I²C mux (1-to-8 channels)</text>
+    <text x="340" y="213" font-size="10" fill="#78350f">≤2m per branch · up to 64 sensors · Adafruit #2717 mux $7 · solves address conflicts (8× same-type OK)</text>
+    <!-- mux + branches -->
+    <g>
+      <rect x="350" y="225" width="80" height="44" fill="#fde68a" stroke="#d97706" rx="4"/>
+      <text x="390" y="240" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">TCA9548A</text>
+      <text x="390" y="252" text-anchor="middle" font-size="8" fill="#92400e">8-ch mux</text>
+      <text x="390" y="263" text-anchor="middle" font-size="8" fill="#92400e">0x70</text>
+    </g>
+    <g font-size="8" fill="#78350f">
+      <line x1="430" y1="250" x2="455" y2="250" stroke="#d97706" stroke-width="1.5"/>
+      <rect x="455" y="232" width="80" height="36" fill="white" stroke="#d97706" rx="4"/>
+      <text x="495" y="245" text-anchor="middle" font-weight="700">BME280 ×4</text>
+      <text x="495" y="258" text-anchor="middle">4 lockers</text>
+
+      <line x1="535" y1="250" x2="560" y2="250" stroke="#d97706" stroke-width="1.5"/>
+      <rect x="560" y="232" width="80" height="36" fill="white" stroke="#d97706" rx="4"/>
+      <text x="600" y="245" text-anchor="middle" font-weight="700">SHT40 ×2</text>
+      <text x="600" y="258" text-anchor="middle">precision T/RH</text>
+
+      <line x1="640" y1="250" x2="665" y2="250" stroke="#d97706" stroke-width="1.5"/>
+      <rect x="665" y="232" width="80" height="36" fill="white" stroke="#d97706" rx="4"/>
+      <text x="705" y="245" text-anchor="middle" font-weight="700">INA228 ×2</text>
+      <text x="705" y="258" text-anchor="middle">alt + start</text>
+
+      <line x1="745" y1="250" x2="770" y2="250" stroke="#d97706" stroke-width="1.5"/>
+      <rect x="770" y="232" width="100" height="36" fill="white" stroke="#d97706" stroke-dasharray="3,2" rx="4"/>
+      <text x="820" y="245" text-anchor="middle" font-weight="700">cascade mux</text>
+      <text x="820" y="258" text-anchor="middle">+8 channels</text>
+
+      <line x1="870" y1="250" x2="895" y2="250" stroke="#d97706" stroke-width="1.5"/>
+      <rect x="895" y="232" width="100" height="36" fill="white" stroke="#d97706" stroke-dasharray="3,2" rx="4"/>
+      <text x="945" y="245" text-anchor="middle" font-weight="700">… up to 64</text>
+    </g>
+  </g>
+  <path d="M 250 370 Q 290 290 340 247" fill="none" stroke="#d97706" stroke-width="3" marker-end="url(#arrx)"/>
+
+  <!-- Tier 3 -->
+  <g>
+    <rect x="320" y="300" width="820" height="100" fill="#fed7aa" stroke="#ea580c" stroke-width="2" rx="8"/>
+    <text x="340" y="325" font-size="13" font-weight="700" fill="#9a3412">TIER 3 — 1-Wire bus (DS18B20 daisy chain)</text>
+    <text x="340" y="343" font-size="10" fill="#7c2d12">≤50m · up to 30 sensors · auto-discovered by ROM · $8 per probe with 3m lead · ONE GPIO + ONE pullup</text>
+    <g font-size="8" fill="#7c2d12">
+      <rect x="350" y="355" width="78" height="36" fill="white" stroke="#ea580c" rx="4"/>
+      <text x="389" y="368" text-anchor="middle" font-weight="700">cabin</text>
+      <text x="389" y="382" text-anchor="middle">DS18B20</text>
+
+      <rect x="432" y="355" width="78" height="36" fill="white" stroke="#ea580c" rx="4"/>
+      <text x="471" y="368" text-anchor="middle" font-weight="700">engine</text>
+      <text x="471" y="382" text-anchor="middle">DS18B20</text>
+
+      <rect x="514" y="355" width="78" height="36" fill="white" stroke="#ea580c" rx="4"/>
+      <text x="553" y="368" text-anchor="middle" font-weight="700">fridge</text>
+      <text x="553" y="382" text-anchor="middle">DS18B20</text>
+
+      <rect x="596" y="355" width="78" height="36" fill="white" stroke="#ea580c" rx="4"/>
+      <text x="635" y="368" text-anchor="middle" font-weight="700">v-berth</text>
+      <text x="635" y="382" text-anchor="middle">DS18B20</text>
+
+      <rect x="678" y="355" width="78" height="36" fill="white" stroke="#ea580c" rx="4"/>
+      <text x="717" y="368" text-anchor="middle" font-weight="700">head</text>
+      <text x="717" y="382" text-anchor="middle">DS18B20</text>
+
+      <rect x="760" y="355" width="78" height="36" fill="white" stroke="#ea580c" rx="4"/>
+      <text x="799" y="368" text-anchor="middle" font-weight="700">tank</text>
+      <text x="799" y="382" text-anchor="middle">DS18B20</text>
+
+      <rect x="842" y="355" width="78" height="36" fill="white" stroke="#ea580c" rx="4"/>
+      <text x="881" y="368" text-anchor="middle" font-weight="700">lazarette</text>
+      <text x="881" y="382" text-anchor="middle">DS18B20</text>
+
+      <rect x="924" y="355" width="78" height="36" fill="white" stroke="#ea580c" stroke-dasharray="3,2" rx="4"/>
+      <text x="963" y="368" text-anchor="middle" font-weight="700">+more</text>
+      <text x="963" y="382" text-anchor="middle">up to 30</text>
+
+      <rect x="1006" y="355" width="120" height="36" fill="#fef3c7" stroke="#ea580c" rx="4"/>
+      <text x="1066" y="368" text-anchor="middle" font-weight="700">Hobby Boards</text>
+      <text x="1066" y="382" text-anchor="middle">RJ12 hub (opt $25)</text>
+    </g>
+  </g>
+  <path d="M 250 380 L 320 380" fill="none" stroke="#ea580c" stroke-width="3" marker-end="url(#arrx)"/>
+  <text x="280" y="375" font-size="9" fill="#ea580c" font-weight="700">D6 GPIO</text>
+
+  <!-- Tier 4 -->
+  <g>
+    <rect x="320" y="420" width="820" height="120" fill="#dbeafe" stroke="#1e40af" stroke-width="2" rx="8"/>
+    <text x="340" y="445" font-size="13" font-weight="700" fill="#1e3a8a">TIER 4 — Satellite ESP32 nodes (per-locker / per-zone)</text>
+    <text x="340" y="463" font-size="10" fill="#1e3a8a">unlimited · WiFi MQTT to boat broker · QT Py ESP32-S3 $15 or XIAO ESP32-C3 $5 · own firmware, own dashboard</text>
+    <g font-size="8" fill="#1e3a8a">
+      <rect x="350" y="475" width="140" height="55" fill="white" stroke="#1e40af" rx="4"/>
+      <text x="420" y="490" text-anchor="middle" font-weight="700">Lazarette satellite</text>
+      <text x="420" y="503" text-anchor="middle">QT Py + SHT40 + CO₂</text>
+      <text x="420" y="516" text-anchor="middle">+ leak switch · $35</text>
+
+      <rect x="500" y="475" width="140" height="55" fill="white" stroke="#1e40af" rx="4"/>
+      <text x="570" y="490" text-anchor="middle" font-weight="700">Mast satellite</text>
+      <text x="570" y="503" text-anchor="middle">QT Py + Davis 6410</text>
+      <text x="570" y="516" text-anchor="middle">wind dir/spd · $80</text>
+
+      <rect x="650" y="475" width="140" height="55" fill="white" stroke="#1e40af" rx="4"/>
+      <text x="720" y="490" text-anchor="middle" font-weight="700">V-berth satellite</text>
+      <text x="720" y="503" text-anchor="middle">QT Py + T/RH + motion</text>
+      <text x="720" y="516" text-anchor="middle">$25</text>
+
+      <rect x="800" y="475" width="140" height="55" fill="white" stroke="#1e40af" rx="4"/>
+      <text x="870" y="490" text-anchor="middle" font-weight="700">Engine room "deep"</text>
+      <text x="870" y="503" text-anchor="middle">M5StickC Plus + IMU</text>
+      <text x="870" y="516" text-anchor="middle">+ alt-W RPM · $30</text>
+
+      <rect x="950" y="475" width="170" height="55" fill="white" stroke="#1e40af" stroke-dasharray="3,2" rx="4"/>
+      <text x="1035" y="490" text-anchor="middle" font-weight="700">+more satellites</text>
+      <text x="1035" y="503" text-anchor="middle">independent failure domains</text>
+      <text x="1035" y="516" text-anchor="middle">configured by YAML</text>
+    </g>
+  </g>
+  <path d="M 250 400 Q 290 470 320 480" fill="none" stroke="#1e40af" stroke-width="3" marker-end="url(#arrx)"/>
+  <text x="280" y="475" font-size="9" fill="#1e40af" font-weight="700">WiFi MQTT</text>
+
+  <!-- Tier 5 -->
+  <g>
+    <rect x="320" y="560" width="820" height="140" fill="#fce7f3" stroke="#be185d" stroke-width="2" rx="8"/>
+    <text x="340" y="585" font-size="13" font-weight="700" fill="#9d174d">TIER 5 — Wireless ecosystems (BLE / Zigbee / LoRa)</text>
+    <text x="340" y="602" font-size="10" fill="#831843">battery · mobile · off-boat · already-built consumer sensors via HA</text>
+
+    <!-- BLE row -->
+    <g font-size="8" fill="#831843">
+      <text x="340" y="625" font-weight="700" font-size="10">5a · BLE</text>
+      <rect x="395" y="612" width="120" height="36" fill="white" stroke="#be185d" rx="4"/>
+      <text x="455" y="625" text-anchor="middle" font-weight="700">Victron SmartShunt</text>
+      <text x="455" y="638" text-anchor="middle">house batt SoC/I/V</text>
+
+      <rect x="520" y="612" width="100" height="36" fill="white" stroke="#be185d" rx="4"/>
+      <text x="570" y="625" text-anchor="middle" font-weight="700">RuuviTag</text>
+      <text x="570" y="638" text-anchor="middle">5yr battery T/RH</text>
+
+      <rect x="625" y="612" width="100" height="36" fill="white" stroke="#be185d" rx="4"/>
+      <text x="675" y="625" text-anchor="middle" font-weight="700">Govee H5179</text>
+      <text x="675" y="638" text-anchor="middle">fridge probe BLE</text>
+
+      <text x="740" y="635" fill="#9d174d">range ~10-30m through fiberglass</text>
+    </g>
+
+    <!-- Zigbee row -->
+    <g font-size="8" fill="#831843">
+      <text x="340" y="666" font-weight="700" font-size="10">5b · Zigbee</text>
+      <rect x="395" y="653" width="100" height="36" fill="white" stroke="#be185d" rx="4"/>
+      <text x="445" y="666" text-anchor="middle" font-weight="700">Aqara contact</text>
+      <text x="445" y="679" text-anchor="middle">hatch · $12</text>
+
+      <rect x="500" y="653" width="100" height="36" fill="white" stroke="#be185d" rx="4"/>
+      <text x="550" y="666" text-anchor="middle" font-weight="700">Aqara leak</text>
+      <text x="550" y="679" text-anchor="middle">water · $15</text>
+
+      <rect x="605" y="653" width="100" height="36" fill="white" stroke="#be185d" rx="4"/>
+      <text x="655" y="666" text-anchor="middle" font-weight="700">Aqara motion</text>
+      <text x="655" y="679" text-anchor="middle">v-berth · $18</text>
+
+      <rect x="710" y="653" width="100" height="36" fill="white" stroke="#be185d" rx="4"/>
+      <text x="760" y="666" text-anchor="middle" font-weight="700">Aqara T/RH</text>
+      <text x="760" y="679" text-anchor="middle">battery · $15</text>
+
+      <text x="820" y="676" fill="#9d174d">via Sonoff ZBDongle-E ($20) on Pi · 100m+ mesh</text>
+    </g>
+  </g>
+  <path d="M 250 410 Q 280 580 320 615" fill="none" stroke="#be185d" stroke-width="3" marker-end="url(#arrx)"/>
+  <path d="M 250 410 Q 290 660 320 670" fill="none" stroke="#be185d" stroke-width="3" stroke-dasharray="4,3" marker-end="url(#arrx)"/>
+  <text x="270" y="535" font-size="9" fill="#be185d" font-weight="700">BLE radio</text>
+  <text x="270" y="635" font-size="9" fill="#be185d" font-weight="700">via Pi USB</text>
+
+</svg>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-swatch" style="background:#16a34a"></span>Tier 1 · direct Qwiic</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#d97706"></span>Tier 2 · I²C mux</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#ea580c"></span>Tier 3 · 1-Wire</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#1e40af"></span>Tier 4 · satellite ESP32</div>
+  <div class="legend-item"><span class="legend-swatch" style="background:#be185d"></span>Tier 5 · wireless</div>
+</div>
+<p class="caption">Adding a sensor: walk the decision tree in <a href="../sensor-expansion.md">sensor-expansion.md</a>. Each tier is mature and plug-together. ~$408 expands the v1 boat to 30+ sensors.</p>
+</section>
+
+<footer style="max-width:1200px;margin:2rem auto;padding-top:1rem;border-top:1px solid #ccc;text-align:center;color:#666;font-size:0.85rem">
+  EvenKeel v2 simplified visuals · paired with <a href="hardware.md">hardware.md</a> and <a href="software-flows.md">software-flows.md</a>.<br>
+  <a href="../README.md">← Back to planning</a>
+</footer>
+
+</body>
+</html>

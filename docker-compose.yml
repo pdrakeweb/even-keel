@@ -1,0 +1,60 @@
+# EvenKeel local development stack.
+#
+# Brings up Mosquitto, Home Assistant, and the boat simulator so the
+# UI can be developed and demoed without any physical hardware.
+#
+#   docker compose up -d
+#
+# Then open:
+#   http://localhost:8123          (Home Assistant)
+#   tcp://localhost:1883           (Mosquitto, if you want mosquitto_sub for debugging)
+#
+# In HA, navigate to the "How's My Boat" dashboard. Toggle
+# "Use simulated boat data" under the Dev tab; pick a scenario.
+
+services:
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: evenkeel-mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./tests/docker/mosquitto:/mosquitto/config
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    restart: unless-stopped
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: evenkeel-homeassistant
+    depends_on:
+      - mosquitto
+    ports:
+      - "8123:8123"
+    volumes:
+      - ./home-assistant:/config
+    environment:
+      - TZ=America/Detroit
+    restart: unless-stopped
+
+  boat-simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: evenkeel-simulator
+    depends_on:
+      - mosquitto
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - INITIAL_SCENARIO=normal
+      - LOG_LEVEL=INFO
+      # Start paused so HA's input_boolean.use_simulator is the source
+      # of truth. Flip the toggle in the Dev tab to start data flowing.
+      - START_PAUSED=true
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:

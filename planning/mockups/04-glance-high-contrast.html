@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvenKeel — Mockup 04: Glance High-Contrast</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background: #eeeeee; color: #111; font-weight: 700; -webkit-font-smoothing: antialiased; }
+  .huge { font-size: clamp(60px, 18vw, 140px); line-height: 0.85; font-weight: 900; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+  .big { font-size: clamp(42px, 10vw, 72px); line-height: 0.9; font-weight: 900; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .label { font-size: 14px; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 800; }
+  .tile-ok { background: #22c55e; color: white; }
+  .tile-warn { background: #f59e0b; color: #1a1a1a; }
+  .tile-crit { background: #dc2626; color: white; }
+  .tile-off { background: #0a0a0a; color: white; }
+  .tile-neutral { background: white; color: #111; border: 3px solid #111; }
+  .shadow-hard { box-shadow: 6px 6px 0 #111; }
+  .no-shadow-on-crit { animation: crit-pulse 1.2s ease-in-out infinite; }
+  @keyframes crit-pulse { 0%,100% { box-shadow: 6px 6px 0 #111; } 50% { box-shadow: 10px 10px 0 #dc2626, 20px 20px 0 #111; } }
+</style>
+</head>
+<body class="min-h-screen p-6">
+
+<header class="max-w-7xl mx-auto mb-10">
+  <h1 class="text-5xl font-black">EvenKeel</h1>
+  <div class="text-sm uppercase tracking-widest text-gray-600 mt-1">Mockup 04 · Glance High-Contrast</div>
+  <p class="text-sm text-gray-700 mt-3 max-w-2xl font-normal">Read from 10 feet away. Huge typography, bold primary colors, minimal chrome. The tile IS the information — no gauge bezels, no decoration. Works for a bedroom tablet that tells Kelly in one eyeblink whether to worry. Would translate directly to an eventual on-boat LVGL panel.</p>
+</header>
+
+<main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+  <!-- LEFT: Phone PWA -->
+  <section>
+    <h2 class="label text-gray-600 mb-4">📱 Boat-side Phone PWA</h2>
+
+    <div class="space-y-8">
+
+      <!-- state 1: OK -->
+      <div class="w-[380px] mx-auto space-y-3">
+        <div class="tile-ok shadow-hard rounded-3xl p-6 text-center">
+          <div class="label opacity-80">Boat</div>
+          <div class="huge">OK</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="tile-ok shadow-hard rounded-3xl p-5 text-center">
+            <div class="label opacity-80 text-xs">Bilge</div>
+            <div class="big">DRY</div>
+          </div>
+          <div class="tile-ok shadow-hard rounded-3xl p-5 text-center">
+            <div class="label opacity-80 text-xs">Power</div>
+            <div class="big">⚓</div>
+            <div class="text-lg mt-1">Shore</div>
+          </div>
+        </div>
+        <div class="tile-neutral shadow-hard rounded-3xl p-5">
+          <div class="flex justify-between items-end">
+            <div class="label text-xs">House</div><div class="big">12.8<span class="text-3xl text-gray-500">V</span></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="tile-neutral shadow-hard rounded-2xl p-3 text-center"><div class="label text-[10px]">Cabin</div><div class="text-3xl font-black">72°</div></div>
+          <div class="tile-neutral shadow-hard rounded-2xl p-3 text-center"><div class="label text-[10px]">Engine</div><div class="text-3xl font-black">68°</div></div>
+          <div class="tile-neutral shadow-hard rounded-2xl p-3 text-center"><div class="label text-[10px]">Fridge</div><div class="text-3xl font-black">39°</div></div>
+        </div>
+      </div>
+
+      <!-- state 2: warning -->
+      <div class="w-[380px] mx-auto space-y-3">
+        <div class="tile-warn shadow-hard rounded-3xl p-6 text-center">
+          <div class="label opacity-80">Boat</div>
+          <div class="huge">WATCH</div>
+        </div>
+        <div class="tile-warn shadow-hard rounded-3xl p-5">
+          <div class="flex justify-between items-end">
+            <div>
+              <div class="label opacity-80 text-xs">House Battery</div>
+              <div class="huge" style="font-size:80px">11.9<span class="text-3xl opacity-80">V</span></div>
+            </div>
+            <div class="text-6xl">⚠</div>
+          </div>
+          <div class="mt-1 text-base font-bold">Low — consider reducing load</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="tile-ok shadow-hard rounded-3xl p-5 text-center"><div class="label opacity-80 text-xs">Bilge</div><div class="big">DRY</div></div>
+          <div class="tile-warn shadow-hard rounded-3xl p-5 text-center"><div class="label opacity-80 text-xs">Power</div><div class="big">⚡</div><div class="text-base mt-1">Generator</div></div>
+        </div>
+      </div>
+
+      <!-- state 3: CRITICAL -->
+      <div class="w-[380px] mx-auto space-y-3">
+        <div class="tile-crit shadow-hard rounded-3xl p-8 text-center no-shadow-on-crit">
+          <div class="label opacity-90 mb-2">⚠ BILGE ⚠</div>
+          <div class="huge">WATER</div>
+          <div class="text-xl font-bold mt-3 opacity-90">18 seconds</div>
+        </div>
+        <button class="w-full tile-off shadow-hard rounded-3xl p-6 text-center label text-xl">🔔 ACKNOWLEDGE</button>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="tile-neutral shadow-hard rounded-3xl p-4 text-center"><div class="label text-[10px]">House</div><div class="text-4xl font-black">12.6V</div></div>
+          <div class="tile-neutral shadow-hard rounded-3xl p-4 text-center"><div class="label text-[10px]">Power</div><div class="text-4xl font-black">⚓</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- RIGHT: HA Card -->
+  <section>
+    <h2 class="label text-gray-600 mb-4">📊 Home Assistant — Kelly's tablet</h2>
+
+    <div class="space-y-8">
+
+      <!-- HA state 1 -->
+      <div class="tile-ok shadow-hard rounded-3xl p-8">
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div class="label opacity-80">Hunter 41DS</div>
+            <div class="huge">OK</div>
+          </div>
+          <div class="text-right">
+            <div class="label opacity-80 text-xs">as of</div>
+            <div class="text-2xl font-bold">just now</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-3">
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">Bilge</div><div class="text-3xl font-black text-green-600">DRY</div></div>
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">Power</div><div class="text-3xl font-black text-green-600">⚓</div></div>
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">House</div><div class="text-3xl font-black">12.8V</div></div>
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">Cabin</div><div class="text-3xl font-black">72°</div></div>
+        </div>
+      </div>
+
+      <!-- HA state 2 -->
+      <div class="tile-warn shadow-hard rounded-3xl p-8">
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div class="label opacity-80">Hunter 41DS</div>
+            <div class="huge">WATCH</div>
+          </div>
+          <div class="text-right">
+            <div class="label opacity-80 text-xs">since</div>
+            <div class="text-2xl font-bold">4 min ago</div>
+          </div>
+        </div>
+        <div class="tile-neutral rounded-2xl p-4 mb-3">
+          <div class="label text-xs text-amber-700">Battery Low</div>
+          <div class="text-4xl font-black">11.9 V</div>
+          <div class="text-sm font-medium text-gray-600 mt-1">House bank below 12.0 V · generator running 12m</div>
+        </div>
+        <div class="grid grid-cols-4 gap-3">
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">Bilge</div><div class="text-3xl font-black text-green-600">DRY</div></div>
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">Power</div><div class="text-3xl font-black text-amber-600">⚡</div></div>
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">Start</div><div class="text-3xl font-black">12.4V</div></div>
+          <div class="tile-neutral rounded-2xl p-4 text-center"><div class="label text-[10px]">Cabin</div><div class="text-3xl font-black">74°</div></div>
+        </div>
+      </div>
+
+      <!-- HA state 3 -->
+      <div class="tile-crit shadow-hard rounded-3xl p-10 no-shadow-on-crit">
+        <div class="label opacity-90 mb-3">⚠ Hunter 41DS — Emergency ⚠</div>
+        <div class="huge" style="font-size:170px">WATER</div>
+        <div class="text-3xl font-bold mt-3">in bilge · 18 seconds ago</div>
+        <div class="grid grid-cols-3 gap-3 mt-8">
+          <button class="tile-off rounded-2xl p-5 label">Acknowledge</button>
+          <button class="tile-neutral rounded-2xl p-5 label">Call Pete</button>
+          <button class="tile-neutral rounded-2xl p-5 label">Marina #</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="max-w-7xl mx-auto mt-12 pt-6 border-t-4 border-black text-center">
+  <div class="label text-xs text-gray-600">Mockup 04 · <a href="README.md" class="underline">Back to index</a></div>
+</footer>
+</body>
+</html>
