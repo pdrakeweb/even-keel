@@ -25,9 +25,22 @@ import logging
 import os
 import pathlib
 from collections import defaultdict
+from dataclasses import dataclass
 from typing import Callable
 
 import aiomqtt
+
+
+@dataclass
+class _Waiter:
+    """One pending wait_for() call.
+
+    Pairs a future with the predicate that has to be satisfied before
+    the listener resolves it. Replaces an earlier hack that stashed
+    the predicate as a private attribute on the future.
+    """
+    future: "asyncio.Future[bytes]"
+    predicate: Callable[[bytes], bool] | None
 from evenkeel_sim.sensors import (
     AIS_TARGETS_TOPIC,
     LWT_TOPIC,
@@ -55,7 +68,7 @@ class VirtualAdapter:
         self._client: aiomqtt.Client | None = None
         self._listener: asyncio.Task[None] | None = None
         self._latest: dict[str, bytes] = {}
-        self._waiters: dict[str, list[asyncio.Future[bytes]]] = defaultdict(list)
+        self._waiters: dict[str, list[_Waiter]] = defaultdict(list)
         self._connected = asyncio.Event()
 
     # ─── Lifecycle ───────────────────────────────────────────────
@@ -102,15 +115,14 @@ class VirtualAdapter:
                 self._latest[topic] = payload
                 # Resolve any waiters whose predicate now matches.
                 pending = self._waiters.get(topic, [])
-                still_pending: list[asyncio.Future[bytes]] = []
-                for fut in pending:
-                    pred = getattr(fut, "_pred", None)
-                    if fut.done():
+                still_pending: list[_Waiter] = []
+                for waiter in pending:
+                    if waiter.future.done():
                         continue
-                    if pred is None or pred(payload):
-                        fut.set_result(payload)
+                    if waiter.predicate is None or waiter.predicate(payload):
+                        waiter.future.set_result(payload)
                     else:
-                        still_pending.append(fut)
+                        still_pending.append(waiter)
                 self._waiters[topic] = still_pending
         except asyncio.CancelledError:
             raise
@@ -262,9 +274,8 @@ class VirtualAdapter:
             return cached
         loop = asyncio.get_running_loop()
         fut: asyncio.Future[bytes] = loop.create_future()
-        # Stash the predicate on the future for the listener to consult.
-        fut._pred = predicate  # type: ignore[attr-defined]
-        self._waiters[topic].append(fut)
+        waiter = _Waiter(future=fut, predicate=predicate)
+        self._waiters[topic].append(waiter)
         try:
             return await asyncio.wait_for(fut, timeout=timeout)
         except asyncio.TimeoutError as e:
