@@ -1,0 +1,41 @@
+# pytest config for the EvenKeel test harness.
+#
+# Deps live in tests/requirements.txt so CI can `pip install -r` without
+# editable-install ceremony. This file is just the pytest configuration.
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+asyncio_mode = "auto"
+# scenario() / scenarios() in test_*.py modules pass full paths from
+# the tests/ root, e.g. "features/telemetry/bilge_publication.feature".
+# Leaving bdd_features_base_dir at its default avoids path doubling.
+filterwarnings = [
+  "error",
+  "ignore::pytest.PytestUnraisableExceptionWarning",
+  # pytest-asyncio sometimes emits this when fixtures span event loops:
+  "ignore::DeprecationWarning",
+]
+markers = [
+  "phase1: Phase 1 — bench AIS prototype",
+  "phase2: Phase 2 — hosting (HA + boat Pi + WireGuard)",
+  "phase3: Phase 3 — hardened core platform",
+  "phase4: Phase 4 — boat install + connectivity",
+  "phase5: Phase 5 — core sensors",
+  "phase6: Phase 6 — critical alerts (v1 ship)",
+  "phase7: Phase 7 — Victron BLE",
+  "phase8: Phase 8 — GPS + tanks",
+  "phase9: Phase 9 — anchor drag",
+  "phase10: Phase 10 — full dashboard + LVGL panel",
+  "alerts: alert delivery scenarios",
+  "ais: AIS pipeline",
+  "ble: Victron BLE scenarios",
+  "gps: GPS scenarios",
+  "ui: dashboard scenarios (Playwright)",
+  "resilience: reconnect, power-cycle, fallback",
+  "cloud: scenarios touching aisstream.io contribution path",
+  "critical: safety-critical — never skip",
+  "hil: requires HIL rig",
+  "live: requires deployed hardware",
+  "tls: exercises TLS happy path",
+  "telemetry: low-level data-plane tests (no HA / notifications)",
+]

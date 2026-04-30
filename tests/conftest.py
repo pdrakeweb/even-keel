@@ -2,10 +2,30 @@
 
 `--mode=virtual|hil|live` picks the BoatAdapter implementation. Step definitions
 call the `boat` fixture — they never reference the adapter directly.
+
+Step modules are imported eagerly here so pytest-bdd discovers them
+as fixtures available to every test in this directory tree.
 """
 from __future__ import annotations
 
+import asyncio
+import sys
+
 import pytest
+
+# aiomqtt uses asyncio.add_writer/remove_writer, which the Windows
+# ProactorEventLoop doesn't implement. Force the SelectorEventLoop on
+# Windows so local dev mirrors CI (which runs on Linux). Set this BEFORE
+# any aiomqtt-importing module loads.
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# pytest-bdd 8 registers step definitions in a global registry when the
+# decorator runs. Importing the step modules at conftest scope ensures
+# every @given/@when/@then is registered before any scenario executes,
+# regardless of which test_*.py module discovers the .feature file.
+from steps.bilge_steps import *  # noqa: F401, F403
+from steps.common_steps import *  # noqa: F401, F403
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

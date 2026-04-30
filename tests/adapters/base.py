@@ -43,3 +43,14 @@ class BoatAdapter(Protocol):
         timeout: float,
     ) -> dict: ...
     async def mqtt_last(self, topic: str) -> bytes: ...
+    async def wait_for(
+        self,
+        topic: str,
+        predicate: Callable[[bytes], bool] | None = None,
+        timeout: float = 10.0,
+    ) -> bytes:
+        """Wait for an MQTT payload on `topic` that matches `predicate`.
+
+        Returns the matching payload. Raises TimeoutError after `timeout`s.
+        """
+        ...

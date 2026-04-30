@@ -1,0 +1,220 @@
+"""Virtual-mode boat adapter.
+
+In virtual mode the "boat" is the EvenKeel simulator, the broker is a
+local Mosquitto, and Home Assistant is the same official Docker image
+the production deployment uses. The adapter:
+
+- Connects to the broker as a separate MQTT client (publisher AND
+  subscriber — it acts as both stimulus and observer).
+- Caches every retained payload it receives so step definitions can
+  read "the last value on topic X" without race conditions.
+- Drives the canonical TOPIC_MAP transforms when synthesizing
+  payloads — the bytes on the wire are byte-for-byte the same as what
+  `SimulatorPublisher` would publish.
+
+Future iterations will spawn the simulator as a child process here
+(or import its `SimulatorPublisher` directly into a background task)
+so a feature can mix scenario-driven background telemetry with
+explicit stimulus pokes. For now this adapter is the minimum viable
+producer: it publishes exactly the values the test asks it to.
+"""
+from __future__ import annotations
+
+import asyncio
+import logging
+import os
+import pathlib
+from collections import defaultdict
+from typing import Callable
+
+import aiomqtt
+from evenkeel_sim.sensors import LWT_TOPIC, TOPIC_MAP
+
+log = logging.getLogger("evenkeel_tests.virtual")
+
+
+class VirtualAdapter:
+    """BoatAdapter implementation against a local mosquitto broker."""
+
+    def __init__(
+        self,
+        broker: str | None = None,
+        port: int | None = None,
+        client_id: str = "evenkeel-tests",
+    ) -> None:
+        self.broker = broker or os.environ.get("MQTT_BROKER", "localhost")
+        self.port = port or int(os.environ.get("MQTT_PORT", "1883"))
+        self.client_id = client_id
+
+        self._client: aiomqtt.Client | None = None
+        self._listener: asyncio.Task[None] | None = None
+        self._latest: dict[str, bytes] = {}
+        self._waiters: dict[str, list[asyncio.Future[bytes]]] = defaultdict(list)
+        self._connected = asyncio.Event()
+
+    # ─── Lifecycle ───────────────────────────────────────────────
+    async def startup(self) -> None:
+        log.info("VirtualAdapter connecting to %s:%s", self.broker, self.port)
+        self._client = aiomqtt.Client(
+            hostname=self.broker,
+            port=self.port,
+            identifier=self.client_id,
+        )
+        await self._client.__aenter__()
+        # Subscribe to everything under the boat tree so retained payloads
+        # arrive immediately and live ones queue up for waiters.
+        await self._client.subscribe("boat/#", qos=1)
+        # Publish a fake-online retained message so steps that assume the
+        # simulator is up have a baseline. Real virtual-mode deployments
+        # would have the simulator process publishing this.
+        await self._client.publish(LWT_TOPIC, "ON", retain=True, qos=1)
+        self._listener = asyncio.create_task(self._listen())
+        self._connected.set()
+        # Give the broker a beat to deliver retained messages.
+        await asyncio.sleep(0.1)
+
+    async def shutdown(self) -> None:
+        if self._listener:
+            self._listener.cancel()
+            try:
+                await self._listener
+            except (asyncio.CancelledError, BaseException):
+                pass
+        if self._client:
+            try:
+                await self._client.__aexit__(None, None, None)
+            except Exception:  # noqa: BLE001
+                log.exception("aiomqtt shutdown raised; ignoring")
+        self._connected.clear()
+
+    async def _listen(self) -> None:
+        assert self._client is not None
+        try:
+            async for message in self._client.messages:
+                topic = str(message.topic)
+                payload = bytes(message.payload) if message.payload else b""
+                self._latest[topic] = payload
+                # Resolve any waiters whose predicate now matches.
+                pending = self._waiters.get(topic, [])
+                still_pending: list[asyncio.Future[bytes]] = []
+                for fut in pending:
+                    pred = getattr(fut, "_pred", None)
+                    if fut.done():
+                        continue
+                    if pred is None or pred(payload):
+                        fut.set_result(payload)
+                    else:
+                        still_pending.append(fut)
+                self._waiters[topic] = still_pending
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001
+            log.exception("MQTT listener crashed")
+
+    # ─── Internal publish helper ─────────────────────────────────
+    async def _publish_field(self, field: str, value) -> None:
+        """Publish `value` on the canonical topic for a SensorSnapshot field.
+
+        Uses the same transform TOPIC_MAP defines so byte-for-byte output
+        matches what the simulator publishes.
+        """
+        topic, transform = TOPIC_MAP[field]
+        payload = transform(value)
+        if payload is None:
+            return
+        assert self._client is not None
+        await self._client.publish(topic, payload, retain=True, qos=1)
+        # Update local cache eagerly so a same-task observation works
+        # without round-tripping through the broker listener.
+        self._latest[topic] = payload.encode("utf-8") if isinstance(payload, str) else payload
+
+    # ─── Stimuli ────────────────────────────────────────────────
+    async def set_bilge(self, wet: bool) -> None:
+        await self._publish_field("bilge_wet", wet)
+
+    async def set_shore_power(self, on: bool) -> None:
+        await self._publish_field("shore_power", on)
+
+    async def set_generator(self, on: bool) -> None:
+        await self._publish_field("generator", on)
+
+    async def set_house_voltage(self, volts: float) -> None:
+        await self._publish_field("house_v", volts)
+
+    async def set_starter_voltage(self, volts: float) -> None:
+        await self._publish_field("start_v", volts)
+
+    async def set_temperature(self, zone: str, celsius: float) -> None:
+        # Map friendly zone name to SensorSnapshot field.
+        zone_field = {
+            "cabin": "cabin_temp_c",
+            "v_berth": "v_berth_temp_c",
+            "head": "head_temp_c",
+            "galley": "galley_temp_c",
+            "nav": "nav_temp_c",
+            "engine": "engine_temp_c",
+            "fridge": "fridge_temp_c",
+            "freezer": "freezer_temp_c",
+            "lazarette": "lazarette_temp_c",
+        }.get(zone)
+        if zone_field is None:
+            raise ValueError(f"unknown temperature zone: {zone!r}")
+        await self._publish_field(zone_field, celsius)
+
+    async def inject_victron(self, soc: float, current: float, ttg_min: int) -> None:
+        await self._publish_field("house_soc", soc)
+        await self._publish_field("house_a", current)
+        await self._publish_field("house_ttg_min", ttg_min)
+
+    async def replay_ais(self, path: pathlib.Path, rate: float = 1.0) -> None:  # noqa: ARG002
+        # Implemented in a later iteration once pyais decoder + a stub
+        # AIS-bridge endpoint live in the harness.
+        raise NotImplementedError("AIS replay arrives in Phase 1/Iteration 3")
+
+    async def set_gps_track(  # noqa: ARG002
+        self, track: list[tuple[float, float, float]]
+    ) -> None:
+        raise NotImplementedError("GPS track replay arrives in Phase 8")
+
+    # ─── Observations ───────────────────────────────────────────
+    async def entity_state(self, entity_id: str) -> str:  # noqa: ARG002
+        # HA REST integration arrives in Iteration 2E. For now, telemetry
+        # tests assert directly on MQTT and skip HA entity assertions.
+        raise NotImplementedError("HA REST observation arrives in Iteration 2E")
+
+    async def wait_for_notification(  # noqa: ARG002
+        self,
+        predicate: Callable[[dict], bool],
+        timeout: float,
+    ) -> dict:
+        raise NotImplementedError("HA notification observation arrives in Iteration 2E")
+
+    async def mqtt_last(self, topic: str) -> bytes:
+        await self._connected.wait()
+        return self._latest.get(topic, b"")
+
+    async def wait_for(
+        self,
+        topic: str,
+        predicate: Callable[[bytes], bool] | None = None,
+        timeout: float = 10.0,
+    ) -> bytes:
+        """Wait for a payload on `topic` matching `predicate` (default: any)."""
+        await self._connected.wait()
+        # Fast path: cached value already matches.
+        cached = self._latest.get(topic)
+        if cached is not None and (predicate is None or predicate(cached)):
+            return cached
+        loop = asyncio.get_running_loop()
+        fut: asyncio.Future[bytes] = loop.create_future()
+        # Stash the predicate on the future for the listener to consult.
+        fut._pred = predicate  # type: ignore[attr-defined]
+        self._waiters[topic].append(fut)
+        try:
+            return await asyncio.wait_for(fut, timeout=timeout)
+        except asyncio.TimeoutError as e:
+            cached = self._latest.get(topic)
+            raise TimeoutError(
+                f"Timed out after {timeout}s waiting for {topic!r} "
+                f"(last seen: {cached!r})"
+            ) from e

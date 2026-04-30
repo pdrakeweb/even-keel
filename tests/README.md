@@ -2,19 +2,43 @@
 
 Natural-language test harness for EvenKeel. See [`../planning/tdd-architecture.md`](../planning/tdd-architecture.md) for the full design.
 
-## Running
+## Running locally
+
+The harness needs a Mosquitto broker. Use the repo's `docker compose`
+stack — the same one used for UI dev.
 
 ```bash
-pip install -r requirements.txt
-docker compose -f docker/compose.yml up -d mosquitto homeassistant
+# From the repo root:
+docker compose up -d mosquitto
 
-pytest --mode=virtual                        # Wokwi + Docker MQTT/HA
-pytest --mode=hil --hil-port=/dev/ttyUSB0    # bench HIL rig
+# Then from tests/:
+pip install -e ../simulator     # provides evenkeel_sim for the adapter
+pip install -r requirements.txt
+pytest -v
+```
+
+Pick a different mode or a tag subset:
+
+```bash
+pytest --mode=virtual                        # default — simulator + local MQTT
+pytest --mode=hil --hil-port=/dev/ttyUSB0    # bench HIL rig (Phase 4+)
 pytest --mode=live --broker=boat-broker.peteskrake.com  # deployed firmware
 
-pytest -m phase5                             # one phase at a time
+pytest -m phase1                             # one phase at a time
 pytest -m "alerts and not ble"               # tag expressions
+pytest -m "telemetry and critical"           # smoke subset
 ```
+
+CI runs the virtual-mode suite on every push touching `tests/**` or
+`simulator/**` — see `.github/workflows/integration-tests.yml`.
+
+## Status
+
+**Iteration 2C complete.** Three Gherkin scenarios green:
+`features/telemetry/bilge_publication.feature`. The aspirational
+`features/alerts/bilge_alarm.feature` covers the full Phase 6
+notification path (HA REST + Pushover + Sonos) and is bound to a
+test_*.py once the HA/Pushover adapters land.
 
 ## Layout
 

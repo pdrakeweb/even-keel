@@ -1,0 +1,74 @@
+name: Integration tests
+
+# Runs the pytest-bdd Gherkin harness in tests/ against a real
+# Mosquitto broker. Virtual mode only — HIL and live modes need
+# physical hardware. The harness is the contract layer between
+# Pete's plain-English requirements and the simulator/firmware
+# implementations; if these go red, the data-plane is broken.
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "tests/**"
+      - "simulator/**"
+      - ".github/workflows/integration-tests.yml"
+  pull_request:
+    paths:
+      - "tests/**"
+      - "simulator/**"
+      - ".github/workflows/integration-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  bdd:
+    name: pytest-bdd (virtual mode)
+    runs-on: ubuntu-latest
+
+    env:
+      MQTT_BROKER: localhost
+      MQTT_PORT: "1883"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Mosquitto
+        run: |
+          docker run -d --name mosquitto \
+            -p 1883:1883 \
+            -v "$PWD/tests/docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro" \
+            eclipse-mosquitto:2
+
+          # Wait up to ~30s for the broker to start accepting connections.
+          for i in $(seq 1 30); do
+            if docker exec mosquitto mosquitto_sub -h localhost -t '$SYS/#' -C 1 -W 2 >/dev/null 2>&1; then
+              echo "broker ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::mosquitto did not come up in time"
+          docker logs mosquitto
+          exit 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            tests/requirements.txt
+            simulator/pyproject.toml
+
+      - name: Install simulator (editable)
+        run: pip install -e ./simulator
+
+      - name: Install test deps
+        run: pip install -r tests/requirements.txt
+
+      - name: Run pytest-bdd
+        working-directory: tests
+        run: pytest -v --tb=short
+
+      - name: Mosquitto logs (on failure)
+        if: failure()
+        run: docker logs mosquitto
