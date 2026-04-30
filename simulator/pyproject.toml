@@ -13,6 +13,7 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
 ]
 
 [project.scripts]
@@ -27,3 +28,24 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+]
+markers = [
+    "slow: tests that take more than ~1s",
+]
+
+[tool.coverage.run]
+source = ["src/evenkeel_sim"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
