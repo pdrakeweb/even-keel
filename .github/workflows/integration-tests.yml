@@ -298,6 +298,10 @@ jobs:
         # because HA_URL/HA_TOKEN didn't propagate — the workflow
         # technically passes but the assertion never happens. Catch
         # that as a real failure here.
+        #
+        # Also emits the per-scenario PASSED list + summary as an
+        # ::notice:: annotation so success-case visibility (test names,
+        # timings) survives without admin log access.
         run: |
           if grep -E "(SKIPPED|skipped)" /tmp/pytest-ha.log >/dev/null; then
             echo "::error::HA-bridged scenarios were skipped — HA env vars not propagating to pytest?"
@@ -310,6 +314,12 @@ jobs:
             exit 1
           fi
           tail -3 /tmp/pytest-ha.log
+          # Emit the PASSED list + summary as one notice annotation so
+          # the green-path run is also self-documenting.
+          summary=$(grep -E "^test_|passed|failed" /tmp/pytest-ha.log \
+            | sed 's/\x1b\[[0-9;]*m//g' \
+            | python3 -c "import sys; print(sys.stdin.read().replace('\n', '%0A'))")
+          echo "::notice title=HA scenarios summary::${summary}"
 
       - name: Run pytest (Playwright e2e)
         # Real-browser regression suite for the boat card, against
