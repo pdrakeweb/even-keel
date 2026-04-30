@@ -1,0 +1,95 @@
+# GPS receiver — u-blox NEO-M9N (Phase 8).
+#
+# *** PLACEHOLDER — NOT included in boat-mon.yaml's packages list. ***
+#
+# ESPHome's built-in `gps` component was removed from the stable
+# release stream after the Phase 8 plan was written. Reinstating
+# native GPS-component support requires either:
+#
+#   1. An external_components fork that ports the parser back, or
+#   2. Custom NMEA parsing in a `custom_component:` block that subscribes
+#      to UART bytes and republishes lat/lon/sog/cog onto the canonical
+#      boat/hunter41/location/* topics, or
+#   3. Routing the GPS UART through stream_server (like AIS) and doing
+#      NMEA parsing in HA — same pattern, different consumer.
+#
+# This file documents the intended pin-out (UART2 on GPIO6/7) and the
+# canonical topic mappings. The implementation choice ships with
+# Phase 8 once Pete picks one of the above.
+#
+# Original spec — left here as a reference:
+#
+# u-blox NEO-M9N is a four-constellation receiver (GPS + GLONASS +
+# Galileo + BeiDou concurrent) on a SparkFun GPS-15210 breakout. The
+# SAW-LNA front end survives the dirty marina RF environment that
+# defeats cheaper modules — see planning/hardware-deep-dive.md §138.
+#
+# Wired UART2 RX on GPIO6, TX on GPIO7. NEO-M9N defaults to 9600 baud
+# / 1 Hz NMEA — those defaults are fine for the boat dashboard.
+# Higher rates need a UBX configure-on-boot dance we'll add later if
+# the dashboard wants 5 Hz updates.
+
+uart:
+  - id: gps_uart
+    rx_pin:
+      number: GPIO6
+      mode:
+        input: true
+        pullup: true
+    tx_pin: GPIO7
+    baud_rate: 9600
+    rx_buffer_size: 256
+
+gps:
+  uart_id: gps_uart
+
+sensor:
+  - platform: gps
+    latitude:
+      name: "Boat latitude"
+      state_topic: ${device_topic}/location/lat
+      accuracy_decimals: 6
+    longitude:
+      name: "Boat longitude"
+      state_topic: ${device_topic}/location/lon
+      accuracy_decimals: 6
+    speed:
+      name: "Boat speed over ground"
+      id: sog_kt
+      state_topic: ${device_topic}/location/sog
+      accuracy_decimals: 2
+      filters:
+        # ESPHome's gps speed comes in m/s. Convert to knots — the
+        # simulator + dashboard expect knots on the canonical topic.
+        - multiply: 1.94384
+    course:
+      name: "Boat course over ground"
+      state_topic: ${device_topic}/location/cog
+      accuracy_decimals: 1
+    altitude:
+      name: "Boat altitude"
+      state_topic: ${device_topic}/location/altitude_m
+      accuracy_decimals: 1
+    satellites:
+      name: "GPS satellites in view"
+      state_topic: ${device_topic}/location/satellites
+      accuracy_decimals: 0
+    hdop:
+      name: "GPS HDOP"
+      state_topic: ${device_topic}/location/hdop
+      accuracy_decimals: 2
+
+text_sensor:
+  - platform: template
+    name: "Boat fix quality"
+    id: gps_fix
+    state_topic: ${device_topic}/location/fix
+    update_interval: 30s
+    lambda: |-
+      // hdop < 1 ≈ excellent; < 2 = good; < 5 = moderate; >= 5 = poor.
+      // Uses the live HDOP from the gps component if available,
+      // otherwise reports "no fix".
+      if (id(sog_kt).has_state()) {
+        return std::string("fix");
+      }
+      return std::string("no fix");

@@ -38,3 +38,4 @@ packages:
   power:       !include packages/power.yaml
   engine:      !include packages/engine.yaml
   ais:         !include packages/ais.yaml
+  # gps:       !include packages/gps.yaml   (Phase 8 — needs NMEA external component)
