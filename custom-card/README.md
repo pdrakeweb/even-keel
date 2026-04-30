@@ -123,10 +123,13 @@ Vite outputs a single ES-module bundle at `dist/evenkeel-boat-card.js`. CI build
 
 ## Layout
 
+HACS metadata (`hacs.json`, `info.md`) lives at the **repo root**, not
+here — that's what the HACS validator expects for `category: plugin`.
+
 ```
+hacs.json                            # HACS metadata (repo root)
+info.md                              # User-facing readme on the HACS install page
 custom-card/
-  hacs.json                          # HACS metadata
-  info.md                            # User-facing readme (HACS UI)
   README.md                          # this file
   package.json
   vite.config.ts

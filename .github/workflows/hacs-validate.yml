@@ -1,0 +1,34 @@
+name: HACS validate
+
+# Runs the official HACS action against the repo to confirm the
+# Lovelace plugin metadata at /hacs.json + /info.md is shaped the
+# way HACS expects. Catches drift before users hit "install" and
+# get a confusing error.
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "hacs.json"
+      - "info.md"
+      - "custom-card/**"
+      - ".github/workflows/hacs-validate.yml"
+  pull_request:
+    paths:
+      - "hacs.json"
+      - "info.md"
+      - "custom-card/**"
+      - ".github/workflows/hacs-validate.yml"
+  workflow_dispatch:
+
+jobs:
+  hacs:
+    name: HACS metadata validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: HACS Action
+        uses: hacs/action@main
+        with:
+          category: plugin
