@@ -1,0 +1,314 @@
+# EvenKeel — Per-category rollup template sensors
+#
+# Each template sensor returns one of:  "ok" | "warning" | "critical"
+# plus a `headline` attribute containing a short human-readable summary.
+#
+# These power the overview dashboard's status tiles. Color is derived
+# from state via Lovelace template, so each category is a single
+# colored button with a one-line summary.
+#
+# Temperatures are in °F because that's what HA serves after unit
+# conversion (the simulator publishes °C, HA converts based on
+# configured unit system).
+
+template:
+  - sensor:
+
+      # ─────────────────── ELECTRICAL ───────────────────
+      # Headline copy follows: <state> · <one number>, no decimals beyond 1.
+      - name: "Boat electrical status"
+        unique_id: boat_electrical_status
+        icon: mdi:flash
+        state: >
+          {%- set hv = states('sensor.boat_house_battery_v') | float(0) -%}
+          {%- set sv = states('sensor.boat_start_battery_v') | float(0) -%}
+          {%- set shore = is_state('binary_sensor.boat_shore_power','on') -%}
+          {%- set gen = is_state('binary_sensor.boat_generator_running','on') -%}
+          {%- if hv < 11.8 or sv < 11.8 -%}critical
+          {%- elif hv < 12.0 or sv < 12.0 -%}warning
+          {%- elif (not shore) and (not gen) and hv < 12.4 -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- set hv = states('sensor.boat_house_battery_v') | float(0) | round(1) -%}
+            {%- if hv < 11.8 -%}House low · {{ hv }} V
+            {%- elif is_state('binary_sensor.boat_shore_power','on') -%}On shore · {{ hv }} V
+            {%- elif is_state('binary_sensor.boat_generator_running','on') -%}Genset · {{ hv }} V
+            {%- else -%}On battery · {{ hv }} V
+            {%- endif -%}
+
+      # ─────────────────── BILGE & LEAKS ───────────────────
+      # Severity rule:
+      #   bilge water  = critical  (could sink the boat)
+      #   any leak     = warning   (urgent but not catastrophic)
+      #   all dry      = ok
+      - name: "Boat bilge status"
+        unique_id: boat_bilge_status
+        icon: mdi:water-pump
+        state: >
+          {%- if is_state('binary_sensor.boat_bilge_water_detected','on') -%}critical
+          {%- elif is_state('binary_sensor.boat_head_leak','on')
+                 or is_state('binary_sensor.boat_galley_leak','on')
+                 or is_state('binary_sensor.boat_engine_leak','on') -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- if is_state('binary_sensor.boat_bilge_water_detected','on') -%}Water in bilge
+            {%- elif is_state('binary_sensor.boat_head_leak','on') -%}Head leak
+            {%- elif is_state('binary_sensor.boat_galley_leak','on') -%}Galley leak
+            {%- elif is_state('binary_sensor.boat_engine_leak','on') -%}Engine leak
+            {%- else -%}All dry
+            {%- endif -%}
+
+      # ─────────────────── CLIMATE ───────────────────
+      # Thresholds in °F (HA-native after conversion)
+      - name: "Boat climate status"
+        unique_id: boat_climate_status
+        icon: mdi:thermometer
+        state: >
+          {%- set cabin = states('sensor.boat_cabin_temperature') | float(72) -%}
+          {%- set fridge = states('sensor.boat_refrigerator') | float(40) -%}
+          {%- set freezer = states('sensor.boat_freezer') | float(0) -%}
+          {%- set engbay = states('sensor.boat_engine_bay_temperature') | float(70) -%}
+          {%- if fridge > 50 or freezer > 25 or engbay > 160 or cabin > 95 -%}critical
+          {%- elif fridge > 45 or freezer > 14 or engbay > 140 or cabin < 50 or cabin > 85 -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- set cabin = states('sensor.boat_cabin_temperature') | float(72) | round(0) | int -%}
+            {%- set fridge = states('sensor.boat_refrigerator') | float(40) | round(0) | int -%}
+            {%- set freezer = states('sensor.boat_freezer') | float(0) | round(0) | int -%}
+            {%- if fridge > 50 -%}Fridge warm · {{ fridge }}°
+            {%- elif freezer > 25 -%}Freezer warm · {{ freezer }}°
+            {%- elif cabin > 95 -%}Cabin hot · {{ cabin }}°
+            {%- elif cabin < 50 -%}Cabin cold · {{ cabin }}°
+            {%- else -%}Cabin {{ cabin }}° · Fridge {{ fridge }}°
+            {%- endif -%}
+
+      # ─────────────────── ENGINE & TANKS ───────────────────
+      - name: "Boat engine tanks status"
+        unique_id: boat_engine_tanks_status
+        icon: mdi:engine
+        state: >
+          {%- set fuel = states('sensor.boat_fuel') | float(50) -%}
+          {%- set water = states('sensor.boat_fresh_water') | float(50) -%}
+          {%- set holding = states('sensor.boat_holding_tank') | float(0) -%}
+          {%- set coolant = states('sensor.boat_engine_coolant') | float(70) -%}
+          {%- set oilp = states('sensor.boat_engine_oil_pressure') | float(40) -%}
+          {%- set running = is_state('binary_sensor.boat_engine_running','on') -%}
+          {%- if (running and (coolant > 215 or oilp < 20)) or fuel < 10 or holding > 90 -%}critical
+          {%- elif fuel < 25 or water < 25 or holding > 75 or (running and coolant > 200) -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- set running = is_state('binary_sensor.boat_engine_running','on') -%}
+            {%- set fuel = states('sensor.boat_fuel') | float(50) | round(0) | int -%}
+            {%- set water = states('sensor.boat_fresh_water') | float(50) | round(0) | int -%}
+            {%- if running -%}Engine on · {{ states('sensor.boat_engine_rpm') }} rpm
+            {%- elif fuel < 10 -%}Fuel critical · {{ fuel }}%
+            {%- elif fuel < 25 -%}Fuel low · {{ fuel }}%
+            {%- else -%}Fuel {{ fuel }}% · Water {{ water }}%
+            {%- endif -%}
+
+      # ─────────────────── WEATHER & SAILING ───────────────────
+      - name: "Boat weather status"
+        unique_id: boat_weather_status
+        icon: mdi:weather-windy
+        state: >
+          {%- set aws = states('sensor.boat_apparent_wind_speed') | float(0) -%}
+          {%- set heel = states('sensor.boat_heel') | float(0) | abs -%}
+          {%- set depth = states('sensor.boat_depth') | float(99) -%}
+          {%- if aws > 30 or heel > 25 or depth < 2 -%}critical
+          {%- elif aws > 20 or heel > 15 or depth < 4 -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- set aws = states('sensor.boat_apparent_wind_speed') | float(0) | round(0) | int -%}
+            {%- set depth = states('sensor.boat_depth') | float(99) | round(1) -%}
+            {%- if aws > 30 -%}High wind · {{ aws }} kn
+            {%- elif depth < 2 -%}Shallow · {{ depth }} m
+            {%- else -%}Wind {{ aws }} kn · Depth {{ depth }} m
+            {%- endif -%}
+
+      # ─────────────────── POSITION & AIS ───────────────────
+      # AIS proximity: warning <0.5 nmi, critical <0.2 nmi
+      - name: "Boat position status"
+        unique_id: boat_position_status
+        icon: mdi:map-marker
+        state: >
+          {%- set anchor_armed = is_state('binary_sensor.boat_anchor_armed','on') -%}
+          {%- set anchor_d = states('sensor.boat_anchor_distance') | float(0) -%}
+          {%- set nearest = states('sensor.boat_nearest_ais_range') | float(99) -%}
+          {%- if (anchor_armed and anchor_d > 50) or nearest < 0.2 -%}critical
+          {%- elif (anchor_armed and anchor_d > 30) or nearest < 0.5 -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- set ais = states('sensor.boat_ais_targets_in_range') | int(0) -%}
+            {%- set armed = is_state('binary_sensor.boat_anchor_armed','on') -%}
+            {%- set anchor_d = states('sensor.boat_anchor_distance') | float(0) | round(0) | int -%}
+            {%- set nearest = states('sensor.boat_nearest_ais_range') | float(99) -%}
+            {%- if armed and anchor_d > 50 -%}Anchor drag · {{ anchor_d }} m
+            {%- elif nearest < 0.5 -%}Vessel close · {{ nearest }} nmi
+            {%- elif armed -%}Anchor {{ anchor_d }} m · {{ ais }} AIS
+            {%- else -%}{{ ais }} AIS targets
+            {%- endif -%}
+
+      # ─────────────────── SAFETY ───────────────────
+      - name: "Boat safety status"
+        unique_id: boat_safety_status
+        icon: mdi:shield-check
+        state: >
+          {%- set co = states('sensor.boat_co_concentration') | float(0) -%}
+          {%- if is_state('binary_sensor.boat_smoke_alarm','on') or co > 35 -%}critical
+          {%- elif co > 9
+                  or is_state('binary_sensor.boat_forepeak_hatch','on')
+                  or is_state('binary_sensor.boat_lazarette_hatch','on') -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- set co = states('sensor.boat_co_concentration') | float(0) | round(0) | int -%}
+            {%- if is_state('binary_sensor.boat_smoke_alarm','on') -%}Smoke alarm ACTIVE
+            {%- elif co > 35 -%}CO HIGH · {{ co }} ppm
+            {%- elif co > 9 -%}CO elevated · {{ co }} ppm
+            {%- elif is_state('binary_sensor.boat_forepeak_hatch','on') -%}Forepeak hatch open
+            {%- else -%}All clear
+            {%- endif -%}
+
+      # ─────────────────── SYSTEM ───────────────────
+      - name: "Boat system status"
+        unique_id: boat_system_status
+        icon: mdi:server-network
+        state: >
+          {%- if is_state('binary_sensor.boat_online','off') -%}critical
+          {%- elif (states('sensor.boat_wifi_rssi') | int(-50)) < -80 -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- if is_state('binary_sensor.boat_online','off') -%}Boat OFFLINE
+            {%- else -%}{{ states('sensor.boat_data_source') }} · RSSI {{ states('sensor.boat_wifi_rssi') }}
+            {%- endif -%}
+
+      # ─────────────────── PRIMARY ALERT (Captain's Glance) ───────────────────
+      # Picks the single most urgent thing on the boat right now and
+      # surfaces it as one short headline. Sourced by the hero banner
+      # at the top of Kelly's dashboard. Rank order, worst-first:
+      #   1. Bilge water
+      #   2. Smoke / CO
+      #   3. Anchor drag
+      #   4. House battery critical (<11.8V)
+      #   5. Engine running hot / oil pressure low
+      #   6. AIS vessel close
+      #   7. Wind / sea state
+      #   8. Electrical warning
+      #   9. Climate (fridge / freezer warm)
+      #  10. Tanks / fuel low
+      # If nothing's flagged, returns "all_good" + a calm location summary.
+      - name: "Boat primary alert"
+        unique_id: boat_primary_alert
+        icon: mdi:alert-decagram
+        state: >
+          {%- set bilge = is_state('binary_sensor.boat_bilge_water_detected','on') -%}
+          {%- set smoke = is_state('binary_sensor.boat_smoke_alarm','on') -%}
+          {%- set co = states('sensor.boat_co_concentration') | float(0) -%}
+          {%- set anchor_drag = is_state('binary_sensor.boat_anchor_armed','on')
+                                 and states('sensor.boat_anchor_distance') | float(0) > 50 -%}
+          {%- set hv = states('sensor.boat_house_battery_v') | float(0) -%}
+          {%- set running = is_state('binary_sensor.boat_engine_running','on') -%}
+          {%- set coolant = states('sensor.boat_engine_coolant') | float(0) -%}
+          {%- set oilp = states('sensor.boat_engine_oil_pressure') | float(40) -%}
+          {%- set ais_near = states('sensor.boat_nearest_ais_range') | float(99) -%}
+          {%- set aws = states('sensor.boat_apparent_wind_speed') | float(0) -%}
+          {%- set fridge = states('sensor.boat_refrigerator') | float(40) -%}
+          {%- set freezer = states('sensor.boat_freezer') | float(0) -%}
+          {%- if bilge -%}critical
+          {%- elif smoke or co > 35 -%}critical
+          {%- elif anchor_drag -%}critical
+          {%- elif hv < 11.8 -%}critical
+          {%- elif running and (coolant > 215 or oilp < 20) -%}critical
+          {%- elif ais_near < 0.2 -%}critical
+          {%- elif aws > 30 -%}warning
+          {%- elif fridge > 50 or freezer > 25 -%}warning
+          {%- elif ais_near < 0.5 -%}warning
+          {%- elif hv < 12.0 -%}warning
+          {%- elif (states('sensor.boat_fuel') | float(50)) < 25 -%}warning
+          {%- else -%}all_good
+          {%- endif -%}
+        attributes:
+          headline: >
+            {%- set bilge = is_state('binary_sensor.boat_bilge_water_detected','on') -%}
+            {%- set smoke = is_state('binary_sensor.boat_smoke_alarm','on') -%}
+            {%- set co = states('sensor.boat_co_concentration') | float(0) | round(0) | int -%}
+            {%- set anchor_armed = is_state('binary_sensor.boat_anchor_armed','on') -%}
+            {%- set anchor_d = states('sensor.boat_anchor_distance') | float(0) | round(0) | int -%}
+            {%- set hv = states('sensor.boat_house_battery_v') | float(0) | round(1) -%}
+            {%- set running = is_state('binary_sensor.boat_engine_running','on') -%}
+            {%- set coolant = states('sensor.boat_engine_coolant') | float(0) | round(0) | int -%}
+            {%- set oilp = states('sensor.boat_engine_oil_pressure') | float(40) | round(0) | int -%}
+            {%- set ais_near = states('sensor.boat_nearest_ais_range') | float(99) -%}
+            {%- set aws = states('sensor.boat_apparent_wind_speed') | float(0) | round(0) | int -%}
+            {%- set fridge = states('sensor.boat_refrigerator') | float(40) | round(0) | int -%}
+            {%- set freezer = states('sensor.boat_freezer') | float(0) | round(0) | int -%}
+            {%- set fuel = states('sensor.boat_fuel') | float(50) | round(0) | int -%}
+            {%- if bilge -%}Water in the bilge — Pete needs to check now
+            {%- elif smoke -%}Smoke alarm ACTIVE — Pete needs to call the marina
+            {%- elif co > 35 -%}High CO ({{ co }} ppm) — Pete needs to check
+            {%- elif anchor_armed and anchor_d > 50 -%}Anchor drag — boat moved {{ anchor_d }}m
+            {%- elif hv < 11.8 -%}House battery critical — {{ hv }}V
+            {%- elif running and coolant > 215 -%}Engine overheating — {{ coolant }}°
+            {%- elif running and oilp < 20 -%}Engine oil pressure LOW — {{ oilp }}
+            {%- elif ais_near < 0.2 -%}Vessel very close — {{ ais_near }} nmi
+            {%- elif aws > 30 -%}High wind — {{ aws }} knots
+            {%- elif fridge > 50 -%}Fridge warm — {{ fridge }}°F (food may spoil)
+            {%- elif freezer > 25 -%}Freezer warm — {{ freezer }}°F
+            {%- elif ais_near < 0.5 -%}Vessel close — {{ ais_near }} nmi
+            {%- elif hv < 12.0 -%}House battery low — {{ hv }}V
+            {%- elif fuel < 25 -%}Fuel low — {{ fuel }}%
+            {%- else -%}Boat is fine. Nothing needs attention right now.
+            {%- endif -%}
+          who_acts: >
+            {%- set bilge = is_state('binary_sensor.boat_bilge_water_detected','on') -%}
+            {%- set smoke = is_state('binary_sensor.boat_smoke_alarm','on') -%}
+            {%- set co = states('sensor.boat_co_concentration') | float(0) -%}
+            {%- if bilge or smoke or co > 35 -%}Pete is on it — call the marina
+            {%- else -%}Pete will handle it
+            {%- endif -%}
+          urgency: >
+            {%- set s = states('sensor.boat_primary_alert') -%}
+            {%- if s == 'critical' -%}NOW
+            {%- elif s == 'warning' -%}SOON
+            {%- else -%}OK
+            {%- endif -%}
+
+      # ─────────────────── OVERALL ROLLUP ───────────────────
+      - name: "Boat overall status"
+        unique_id: boat_overall_status
+        icon: mdi:sail-boat
+        state: >
+          {%- set categories = [
+            'sensor.boat_electrical_status',
+            'sensor.boat_bilge_status',
+            'sensor.boat_climate_status',
+            'sensor.boat_engine_tanks_status',
+            'sensor.boat_weather_status',
+            'sensor.boat_position_status',
+            'sensor.boat_safety_status',
+            'sensor.boat_system_status'
+          ] -%}
+          {%- if categories | select('is_state', 'critical') | list | count > 0 -%}critical
+          {%- elif categories | select('is_state', 'warning') | list | count > 0 -%}warning
+          {%- else -%}ok
+          {%- endif -%}
+        attributes:
+          critical_count: >
+            {{ ['sensor.boat_electrical_status','sensor.boat_bilge_status','sensor.boat_climate_status','sensor.boat_engine_tanks_status','sensor.boat_weather_status','sensor.boat_position_status','sensor.boat_safety_status','sensor.boat_system_status'] | select('is_state','critical') | list | count }}
+          warning_count: >
+            {{ ['sensor.boat_electrical_status','sensor.boat_bilge_status','sensor.boat_climate_status','sensor.boat_engine_tanks_status','sensor.boat_weather_status','sensor.boat_position_status','sensor.boat_safety_status','sensor.boat_system_status'] | select('is_state','warning') | list | count }}

@@ -1,0 +1,122 @@
+# EvenKeel — Sensor source abstraction & simulator control plane
+#
+# This package defines the runtime toggle that swaps between simulated
+# boat data and real boat hardware. Dashboards always read the canonical
+# `boat/hunter41/...` topics; this package controls who *publishes* to them.
+#
+# Toggle:
+#   input_boolean.use_simulator (ON/OFF)
+#       → boat/control/simulator/run  ("on"/"off")
+#
+# Scenario picker:
+#   input_select.simulator_scenario (one of the named scenarios)
+#       → boat/control/simulator/scenario  (scenario name)
+#
+# Both toggles are read by the simulator service. When the simulator is
+# OFF and real hardware is online, real-boat MQTT data takes over the same
+# topics with no template-sensor swap required.
+
+# ──────────────────────────── controls ────────────────────────────────
+input_boolean:
+  use_simulator:
+    name: Use simulated boat data
+    icon: mdi:test-tube
+
+  boat_demo_mode:
+    name: Demo mode (cycle scenarios)
+    icon: mdi:movie-play
+
+input_select:
+  simulator_scenario:
+    name: Simulator scenario
+    icon: mdi:script-text
+    options:
+      - normal
+      - low_battery
+      - bilge_wet
+      - shore_lost
+      - gen_running
+      - anchor_drag
+      - underway
+      - all_critical
+      - cycle
+    initial: normal
+
+# ──────────────────────────── derived state ───────────────────────────
+template:
+  - sensor:
+      # Simulator status reflected from the retained sim/active topic
+      - name: "Boat data source"
+        unique_id: boat_data_source
+        icon: mdi:swap-horizontal
+        state: >
+          {% if is_state('input_boolean.use_simulator', 'on') %}
+            simulator
+          {% else %}
+            real_hardware
+          {% endif %}
+
+      - name: "Active simulator scenario"
+        unique_id: boat_active_simulator_scenario
+        state: "{{ states('input_select.simulator_scenario') }}"
+        icon: mdi:script-text-outline
+
+# ──────────────────────────── automations ─────────────────────────────
+automation:
+
+  - alias: EvenKeel · Publish simulator run flag on toggle
+    id: evenkeel_publish_sim_run
+    trigger:
+      - platform: state
+        entity_id: input_boolean.use_simulator
+    action:
+      - service: mqtt.publish
+        data:
+          topic: boat/control/simulator/run
+          payload: >
+            {% if trigger.to_state.state == 'on' %}on{% else %}off{% endif %}
+          retain: true
+
+  - alias: EvenKeel · Publish simulator scenario on change
+    id: evenkeel_publish_sim_scenario
+    trigger:
+      - platform: state
+        entity_id: input_select.simulator_scenario
+    action:
+      - service: mqtt.publish
+        data:
+          topic: boat/control/simulator/scenario
+          payload: "{{ trigger.to_state.state }}"
+          retain: true
+
+  - alias: EvenKeel · Republish controls on HA startup
+    id: evenkeel_republish_controls_on_start
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - delay: '00:00:05'  # let MQTT integration settle
+      - service: mqtt.publish
+        data:
+          topic: boat/control/simulator/run
+          payload: "{{ 'on' if is_state('input_boolean.use_simulator', 'on') else 'off' }}"
+          retain: true
+      - service: mqtt.publish
+        data:
+          topic: boat/control/simulator/scenario
+          payload: "{{ states('input_select.simulator_scenario') }}"
+          retain: true
+
+  - alias: EvenKeel · Demo mode forces 'cycle' scenario
+    id: evenkeel_demo_mode_cycle
+    trigger:
+      - platform: state
+        entity_id: input_boolean.boat_demo_mode
+        to: 'on'
+    action:
+      - service: input_boolean.turn_on
+        target: { entity_id: input_boolean.use_simulator }
+      - service: input_select.select_option
+        target: { entity_id: input_select.simulator_scenario }
+        data:
+          option: cycle

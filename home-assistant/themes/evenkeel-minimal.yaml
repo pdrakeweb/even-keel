@@ -1,0 +1,64 @@
+# EvenKeel · Modern Minimal theme
+# iOS / Apple Weather DNA. Calm whites, soft shadows, generous whitespace.
+# Default theme for Kelly's "How's My Boat" dashboard.
+
+evenkeel-minimal:
+  # ── Base ────────────────────────────────────────────────
+  primary-color: "#007aff"
+  accent-color: "#007aff"
+  primary-background-color: "#f2f2f7"
+  secondary-background-color: "#ffffff"
+  divider-color: "rgba(0,0,0,0.06)"
+
+  # ── Text ────────────────────────────────────────────────
+  primary-text-color: "#1c1c1e"
+  secondary-text-color: "#5a5a5e"
+  text-primary-color: "#1c1c1e"
+  disabled-text-color: "#a0a0a4"
+
+  # ── Cards ───────────────────────────────────────────────
+  card-background-color: "#ffffff"
+  ha-card-background: "#ffffff"
+  ha-card-border-radius: "20px"
+  ha-card-box-shadow: "0 1px 3px rgba(0,0,0,0.04)"
+  ha-card-border-color: "transparent"
+  ha-card-border-width: "0"
+
+  # ── States ──────────────────────────────────────────────
+  state-icon-color: "#1c1c1e"
+  state-icon-active-color: "#007aff"
+  state-icon-unavailable-color: "#a0a0a4"
+
+  # ── Severity (used in card-mod via theme variables) ────
+  evenkeel-ok: "#34c759"
+  evenkeel-warn: "#ff9500"
+  evenkeel-crit: "#ff3b30"
+  evenkeel-info: "#5ac8fa"
+
+  # ── Misc ────────────────────────────────────────────────
+  paper-item-icon-color: "#5a5a5e"
+  app-header-background-color: "#ffffff"
+  app-header-text-color: "#1c1c1e"
+
+  # Big-number style for the hero tiles in Kelly's card
+  evenkeel-hero-font: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif"
+  evenkeel-hero-weight: "300"
+  evenkeel-hero-tracking: "-0.03em"
+
+  # ── Modes ───────────────────────────────────────────────
+  modes:
+    light:
+      primary-background-color: "#f2f2f7"
+      secondary-background-color: "#ffffff"
+      card-background-color: "#ffffff"
+      ha-card-background: "#ffffff"
+      primary-text-color: "#1c1c1e"
+      secondary-text-color: "#5a5a5e"
+    dark:
+      primary-background-color: "#000000"
+      secondary-background-color: "#1c1c1e"
+      card-background-color: "#1c1c1e"
+      ha-card-background: "#1c1c1e"
+      primary-text-color: "#f4f4f5"
+      secondary-text-color: "#a8a8ad"
+      ha-card-box-shadow: "0 1px 3px rgba(0,0,0,0.4)"

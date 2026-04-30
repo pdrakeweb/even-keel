@@ -1,0 +1,1035 @@
+# Kelly's "How's My Boat" — overview-first design.
+#
+# View 0 (Overview): 8 colored category tiles in a 4×2 grid.
+#   Each tile shows: icon, name, headline (one-line summary).
+#   Color = green/orange/red based on rollup severity.
+#   Tap → drill into category subview.
+#
+# Views 1..N: per-category detail dashboards.
+#
+# Stock Lovelace cards only. No HACS.
+
+title: How's My Boat
+theme: evenkeel-minimal
+
+views:
+
+  # ═══════════════════ OVERVIEW ════════════════════════
+  # Layout pattern notes:
+  #   • `panel: true` makes the single root card span the panel's full width
+  #     (without it, masonry collapses content to ~50% width).
+  #   • Outer vertical-stack groups all rows so they stack vertically.
+  #   • Per-category color uses 3 conditional cards per tile because
+  #     HA tile's `color:` field doesn't accept Jinja templates as of
+  #     HA 2026.4.4. When a future HA version supports templated color,
+  #     collapse the 3 conditionals into one tile with `color: "{{ ... }}"`.
+  - title: Overview
+    path: overview
+    icon: mdi:sail-boat
+    cards:
+      - type: vertical-stack
+        cards:
+        - type: conditional
+          conditions:
+          - condition: state
+            entity: binary_sensor.boat_bilge_water_detected
+            state: 'on'
+          card:
+            type: tile
+            entity: binary_sensor.boat_bilge_water_detected
+            name: WARNING - Water in bilge
+            icon: mdi:water-alert
+            color: red
+            state_content: last-changed
+            tap_action:
+              action: navigate
+              navigation_path: /boat-kelly/bilge
+        - type: heading
+          heading: Hunter 41DS
+          icon: mdi:sail-boat
+
+        # ── CAPTAIN'S GLANCE — single most-urgent issue, plain English ──
+        # Replaces the 3-state overall rollup with one big sentence.
+        # state_content: headline pulls from sensor.boat_primary_alert.
+        - type: conditional
+          conditions:
+          - condition: state
+            entity: sensor.boat_primary_alert
+            state: all_good
+          card:
+            type: tile
+            entity: sensor.boat_primary_alert
+            name: All good
+            icon: mdi:check-circle
+            color: green
+            state_content: headline
+        - type: conditional
+          conditions:
+          - condition: state
+            entity: sensor.boat_primary_alert
+            state: warning
+          card:
+            type: tile
+            entity: sensor.boat_primary_alert
+            name: Heads up
+            icon: mdi:alert
+            color: orange
+            state_content: headline
+        - type: conditional
+          conditions:
+          - condition: state
+            entity: sensor.boat_primary_alert
+            state: critical
+          card:
+            type: tile
+            entity: sensor.boat_primary_alert
+            name: Action needed NOW
+            icon: mdi:alert-octagon
+            color: red
+            state_content: headline
+        - type: horizontal-stack
+          cards:
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_electrical_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_electrical_status
+                name: Electrical
+                icon: mdi:flash
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/electrical
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_electrical_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_electrical_status
+                name: Electrical
+                icon: mdi:flash
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/electrical
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_electrical_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_electrical_status
+                name: Electrical
+                icon: mdi:flash
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/electrical
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_bilge_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_bilge_status
+                name: Bilge & Leaks
+                icon: mdi:water-pump
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/bilge
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_bilge_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_bilge_status
+                name: Bilge & Leaks
+                icon: mdi:water-pump
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/bilge
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_bilge_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_bilge_status
+                name: Bilge & Leaks
+                icon: mdi:water-pump
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/bilge
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_climate_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_climate_status
+                name: Climate
+                icon: mdi:thermometer
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/climate
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_climate_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_climate_status
+                name: Climate
+                icon: mdi:thermometer
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/climate
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_climate_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_climate_status
+                name: Climate
+                icon: mdi:thermometer
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/climate
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_engine_tanks_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_engine_tanks_status
+                name: Engine & Tanks
+                icon: mdi:engine
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/engine
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_engine_tanks_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_engine_tanks_status
+                name: Engine & Tanks
+                icon: mdi:engine
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/engine
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_engine_tanks_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_engine_tanks_status
+                name: Engine & Tanks
+                icon: mdi:engine
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/engine
+        - type: horizontal-stack
+          cards:
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_weather_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_weather_status
+                name: Weather
+                icon: mdi:weather-windy
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/weather
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_weather_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_weather_status
+                name: Weather
+                icon: mdi:weather-windy
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/weather
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_weather_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_weather_status
+                name: Weather
+                icon: mdi:weather-windy
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/weather
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_position_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_position_status
+                name: Position & AIS
+                icon: mdi:map-marker
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/position
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_position_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_position_status
+                name: Position & AIS
+                icon: mdi:map-marker
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/position
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_position_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_position_status
+                name: Position & AIS
+                icon: mdi:map-marker
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/position
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_safety_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_safety_status
+                name: Safety
+                icon: mdi:shield-check
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/safety
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_safety_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_safety_status
+                name: Safety
+                icon: mdi:shield-check
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/safety
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_safety_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_safety_status
+                name: Safety
+                icon: mdi:shield-check
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/safety
+          - type: vertical-stack
+            cards:
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_system_status
+                state: ok
+              card:
+                type: tile
+                entity: sensor.boat_system_status
+                name: System
+                icon: mdi:server-network
+                color: green
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/system
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_system_status
+                state: warning
+              card:
+                type: tile
+                entity: sensor.boat_system_status
+                name: System
+                icon: mdi:server-network
+                color: orange
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/system
+            - type: conditional
+              conditions:
+              - condition: state
+                entity: sensor.boat_system_status
+                state: critical
+              card:
+                type: tile
+                entity: sensor.boat_system_status
+                name: System
+                icon: mdi:server-network
+                color: red
+                vertical: true
+                state_content: headline
+                tap_action:
+                  action: navigate
+                  navigation_path: /boat-kelly/system
+
+  # ═══════════════════ ELECTRICAL ══════════════════════
+  - title: Electrical
+    path: electrical
+    icon: mdi:flash
+    cards:
+      - type: heading
+        heading: Electrical
+        icon: mdi:flash
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: gauge
+            entity: sensor.boat_house_battery_v
+            name: House V
+            min: 11
+            max: 14
+            needle: true
+            severity: { red: 11, yellow: 12, green: 12.4 }
+          - type: gauge
+            entity: sensor.boat_house_battery_soc
+            name: House SoC
+            min: 0
+            max: 100
+            needle: true
+            severity: { red: 0, yellow: 25, green: 50 }
+          - type: gauge
+            entity: sensor.boat_start_battery_v
+            name: Start V
+            min: 11
+            max: 14
+            needle: true
+            severity: { red: 11, yellow: 12, green: 12.4 }
+
+      - type: glance
+        title: Power source
+        state_color: true
+        entities:
+          - { entity: binary_sensor.boat_shore_power,        name: Shore }
+          - { entity: sensor.boat_shore_voltage,             name: Shore V }
+          - { entity: sensor.boat_shore_current,             name: Shore A }
+          - { entity: binary_sensor.boat_generator_running,  name: Generator }
+          - { entity: sensor.boat_generator_voltage,         name: Gen V }
+          - { entity: sensor.boat_generator_runtime,         name: Gen h }
+
+      - type: glance
+        title: Solar
+        entities:
+          - { entity: sensor.boat_solar_power,    name: Power }
+          - { entity: sensor.boat_solar_panel_v,  name: Panel V }
+          - { entity: sensor.boat_solar_panel_a,  name: Panel A }
+          - { entity: sensor.boat_solar_today,    name: Today }
+
+      - type: history-graph
+        title: 'Battery voltages — 1h'
+        hours_to_show: 1
+        entities:
+          - sensor.boat_house_battery_v
+          - sensor.boat_start_battery_v
+
+      - type: history-graph
+        title: 'House SoC — 6h'
+        hours_to_show: 6
+        entities:
+          - sensor.boat_house_battery_soc
+
+  # ═══════════════════ BILGE & LEAKS ════════════════════
+  - title: Bilge
+    path: bilge
+    icon: mdi:water-pump
+    cards:
+      - type: heading
+        heading: Bilge & Leaks
+        icon: mdi:water-pump
+
+      - type: grid
+        columns: 4
+        square: false
+        cards:
+          - type: tile
+            entity: binary_sensor.boat_bilge_water_detected
+            name: Bilge sensor
+            icon: mdi:water
+            vertical: true
+            color: |-
+              {% if is_state(entity, 'on') %}red{% else %}green{% endif %}
+          - type: tile
+            entity: binary_sensor.boat_head_leak
+            name: Head leak
+            icon: mdi:shower
+            vertical: true
+            color: |-
+              {% if is_state(entity, 'on') %}red{% else %}green{% endif %}
+          - type: tile
+            entity: binary_sensor.boat_galley_leak
+            name: Galley leak
+            icon: mdi:silverware-fork-knife
+            vertical: true
+            color: |-
+              {% if is_state(entity, 'on') %}red{% else %}green{% endif %}
+          - type: tile
+            entity: binary_sensor.boat_engine_leak
+            name: Engine leak
+            icon: mdi:engine
+            vertical: true
+            color: |-
+              {% if is_state(entity, 'on') %}red{% else %}green{% endif %}
+
+      - type: glance
+        title: Bilge metrics
+        entities:
+          - { entity: sensor.boat_bilge_pump_cycles_today, name: Pump cycles today }
+
+      - type: history-graph
+        title: 'Leak events — 24h'
+        hours_to_show: 24
+        entities:
+          - binary_sensor.boat_bilge_water_detected
+          - binary_sensor.boat_head_leak
+          - binary_sensor.boat_galley_leak
+          - binary_sensor.boat_engine_leak
+
+  # ═══════════════════ CLIMATE ══════════════════════════
+  - title: Climate
+    path: climate
+    icon: mdi:thermometer
+    cards:
+      - type: heading
+        heading: Climate
+        icon: mdi:thermometer
+
+      - type: grid
+        columns: 4
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.boat_cabin_temperature
+            name: Cabin
+            icon: mdi:weather-sunny
+            vertical: true
+          - type: tile
+            entity: sensor.boat_v_berth_temperature
+            name: V-berth
+            icon: mdi:bed
+            vertical: true
+          - type: tile
+            entity: sensor.boat_head_temperature
+            name: Head
+            icon: mdi:shower
+            vertical: true
+          - type: tile
+            entity: sensor.boat_galley_temperature
+            name: Galley
+            icon: mdi:silverware-fork-knife
+            vertical: true
+
+      - type: grid
+        columns: 4
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.boat_nav_station_temperature
+            name: Nav station
+            icon: mdi:compass
+            vertical: true
+          - type: tile
+            entity: sensor.boat_lazarette_temperature
+            name: Lazarette
+            icon: mdi:archive
+            vertical: true
+          - type: tile
+            entity: sensor.boat_engine_bay_temperature
+            name: Engine bay
+            icon: mdi:engine
+            vertical: true
+          - type: tile
+            entity: sensor.boat_engine_intake_air_temp
+            name: Intake air
+            icon: mdi:air-filter
+            vertical: true
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.boat_refrigerator
+            name: Refrigerator
+            icon: mdi:fridge-outline
+            vertical: true
+            color: |-
+              {% set t = states(entity) | float(40) %}
+              {% if t > 50 %}red{% elif t > 45 %}orange{% else %}green{% endif %}
+          - type: tile
+            entity: sensor.boat_freezer
+            name: Freezer
+            icon: mdi:snowflake
+            vertical: true
+            color: |-
+              {% set t = states(entity) | float(0) %}
+              {% if t > 25 %}red{% elif t > 14 %}orange{% else %}green{% endif %}
+
+      - type: glance
+        title: Cabin atmospherics
+        entities:
+          - { entity: sensor.boat_cabin_humidity, name: Humidity }
+          - { entity: sensor.boat_cabin_pressure, name: Pressure }
+
+      - type: history-graph
+        title: 'Temperatures — 6h'
+        hours_to_show: 6
+        entities:
+          - sensor.boat_cabin_temperature
+          - sensor.boat_v_berth_temperature
+          - sensor.boat_engine_bay_temperature
+          - sensor.boat_refrigerator
+          - sensor.boat_freezer
+
+  # ═══════════════════ ENGINE & TANKS ════════════════════
+  - title: Engine
+    path: engine
+    icon: mdi:engine
+    cards:
+      - type: heading
+        heading: Engine & Tanks
+        icon: mdi:engine
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: gauge
+            entity: sensor.boat_engine_rpm
+            name: RPM
+            min: 0
+            max: 4000
+            needle: true
+            severity: { green: 1500, yellow: 3200, red: 3800 }
+          - type: gauge
+            entity: sensor.boat_engine_coolant
+            name: Coolant
+            min: 0
+            max: 230
+            needle: true
+            severity: { green: 150, yellow: 200, red: 215 }
+          - type: gauge
+            entity: sensor.boat_engine_oil_pressure
+            name: Oil pressure
+            min: 0
+            max: 80
+            needle: true
+            severity: { red: 0, yellow: 20, green: 40 }
+
+      - type: glance
+        title: Engine detail
+        state_color: true
+        entities:
+          - { entity: binary_sensor.boat_engine_running, name: Running }
+          - { entity: sensor.boat_alternator_v,           name: Alt V }
+          - { entity: sensor.boat_engine_hours,           name: Hours }
+          - { entity: sensor.boat_generator_runtime,      name: Gen h }
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: gauge
+            entity: sensor.boat_fresh_water
+            name: Fresh water
+            min: 0
+            max: 100
+            needle: true
+            severity: { red: 0, yellow: 15, green: 30 }
+          - type: gauge
+            entity: sensor.boat_fuel
+            name: Fuel
+            min: 0
+            max: 100
+            needle: true
+            severity: { red: 0, yellow: 15, green: 30 }
+          - type: gauge
+            entity: sensor.boat_holding_tank
+            name: Holding
+            min: 0
+            max: 100
+            needle: true
+            severity: { green: 0, yellow: 70, red: 90 }
+
+      - type: history-graph
+        title: 'Engine — 1h'
+        hours_to_show: 1
+        entities:
+          - sensor.boat_engine_rpm
+          - sensor.boat_engine_coolant
+          - sensor.boat_engine_oil_pressure
+
+  # ═══════════════════ WEATHER & SAILING ═════════════════
+  - title: Weather
+    path: weather
+    icon: mdi:weather-windy
+    cards:
+      - type: heading
+        heading: Weather & Sailing
+        icon: mdi:weather-windy
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: gauge
+            entity: sensor.boat_apparent_wind_speed
+            name: Apparent wind
+            unit: kn
+            min: 0
+            max: 40
+            needle: true
+            severity: { green: 0, yellow: 18, red: 30 }
+          - type: gauge
+            entity: sensor.boat_apparent_wind_angle
+            name: Wind angle
+            min: 0
+            max: 360
+            needle: true
+          - type: gauge
+            entity: sensor.boat_heel
+            name: Heel
+            min: -30
+            max: 30
+            needle: true
+            severity: { green: -10, yellow: 15, red: 25 }
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: gauge
+            entity: sensor.boat_depth
+            name: Depth
+            unit: m
+            min: 0
+            max: 30
+            needle: true
+            severity: { red: 0, yellow: 3, green: 6 }
+          - type: glance
+            title: Sailing
+            entities:
+              - { entity: sensor.boat_true_wind_speed,     name: TWS }
+              - { entity: sensor.boat_true_wind_direction, name: TWD }
+              - { entity: sensor.boat_pitch,               name: Pitch }
+              - { entity: sensor.boat_cabin_pressure,      name: Baro }
+
+      - type: history-graph
+        title: 'Wind & barometer — 6h'
+        hours_to_show: 6
+        entities:
+          - sensor.boat_apparent_wind_speed
+          - sensor.boat_true_wind_speed
+          - sensor.boat_cabin_pressure
+
+  # ═══════════════════ POSITION & AIS ═══════════════════
+  - title: Position
+    path: position
+    icon: mdi:map-marker
+    cards:
+      - type: heading
+        heading: Position & AIS
+        icon: mdi:map-marker
+
+      - type: map
+        default_zoom: 13
+        hours_to_show: 6
+        entities:
+          - device_tracker.boat_boat
+        theme_mode: dark
+
+      - type: glance
+        title: Nav data
+        state_color: true
+        entities:
+          - { entity: sensor.boat_speed_over_ground, name: SOG }
+          - { entity: sensor.boat_course_over_ground, name: COG }
+          - { entity: sensor.boat_heading,            name: HDG }
+          - { entity: sensor.boat_depth,              name: Depth }
+          - { entity: binary_sensor.boat_anchor_armed, name: Anchor }
+          - { entity: sensor.boat_anchor_distance,    name: 'Anc m' }
+          - { entity: sensor.boat_slip_distance,      name: 'Slip m' }
+
+      - type: glance
+        title: AIS
+        entities:
+          - { entity: sensor.boat_ais_targets_in_range, name: Targets }
+          - { entity: sensor.boat_nearest_ais_vessel,   name: Nearest }
+          - { entity: sensor.boat_nearest_ais_range,    name: Distance }
+
+  # ═══════════════════ SAFETY ════════════════════════════
+  - title: Safety
+    path: safety
+    icon: mdi:shield-check
+    cards:
+      - type: heading
+        heading: Safety
+        icon: mdi:shield-check
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: tile
+            entity: binary_sensor.boat_smoke_alarm
+            name: Smoke
+            icon: mdi:smoke-detector
+            vertical: true
+            color: |-
+              {% if is_state(entity, 'on') %}red{% else %}green{% endif %}
+          - type: tile
+            entity: sensor.boat_co_concentration
+            name: CO
+            icon: mdi:molecule-co
+            vertical: true
+            color: |-
+              {% set v = states(entity) | float(0) %}
+              {% if v > 35 %}red{% elif v > 9 %}orange{% else %}green{% endif %}
+          - type: tile
+            entity: binary_sensor.boat_main_hatch
+            name: Main hatch
+            icon: mdi:door
+            vertical: true
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: binary_sensor.boat_forepeak_hatch
+            name: Forepeak hatch
+            icon: mdi:door
+            vertical: true
+            color: |-
+              {% if is_state(entity, 'on') %}orange{% else %}green{% endif %}
+          - type: tile
+            entity: binary_sensor.boat_lazarette_hatch
+            name: Lazarette hatch
+            icon: mdi:door
+            vertical: true
+            color: |-
+              {% if is_state(entity, 'on') %}orange{% else %}green{% endif %}
+
+  # ═══════════════════ SYSTEM ════════════════════════════
+  - title: System
+    path: system
+    icon: mdi:server-network
+    cards:
+      - type: heading
+        heading: System
+        icon: mdi:server-network
+
+      - type: glance
+        title: Connection
+        state_color: true
+        entities:
+          - { entity: binary_sensor.boat_online, name: Online }
+          - { entity: sensor.boat_wifi_rssi,     name: RSSI }
+          - { entity: sensor.boat_uptime,        name: Uptime }
+          - { entity: sensor.boat_data_source,   name: Source }
+
+      - type: entities
+        title: Sensor source control
+        entities:
+          - input_boolean.use_simulator
+          - input_select.simulator_scenario
+          - input_boolean.boat_demo_mode
+
+      - type: grid
+        columns: 4
+        square: false
+        cards:
+          - type: button
+            name: Normal
+            icon: mdi:check-circle
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: normal }
+          - type: button
+            name: Underway
+            icon: mdi:sail-boat
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: underway }
+          - type: button
+            name: Bilge wet
+            icon: mdi:water-alert
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: bilge_wet }
+          - type: button
+            name: Low battery
+            icon: mdi:battery-low
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: low_battery }
+          - type: button
+            name: Anchor drag
+            icon: mdi:anchor
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: anchor_drag }
+          - type: button
+            name: All critical
+            icon: mdi:alert-octagon
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: all_critical }
+          - type: button
+            name: Cycle
+            icon: mdi:movie-play
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: cycle }
+          - type: button
+            name: Shore lost
+            icon: mdi:power-plug-off
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              target: { entity_id: input_select.simulator_scenario }
+              data: { option: shore_lost }

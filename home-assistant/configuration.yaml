@@ -1,0 +1,49 @@
+# EvenKeel Home Assistant configuration.
+# Versioned in git. Real secrets live in secrets.yaml (gitignored).
+
+default_config:
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+# Pull in modular packages.
+homeassistant:
+  packages: !include_dir_named packages
+
+# Lovelace dashboards in YAML mode (kept in version control).
+lovelace:
+  mode: yaml
+  dashboards:
+    boat-kelly:
+      mode: yaml
+      title: How's My Boat
+      icon: mdi:sail-boat
+      show_in_sidebar: true
+      filename: lovelace/kellys-card.yaml
+    boat-marine:
+      mode: yaml
+      title: How's My Boat (Marine)
+      icon: mdi:ferry
+      show_in_sidebar: true
+      filename: lovelace/kellys-card-marine.yaml
+    boat-pete:
+      mode: yaml
+      title: Pete's Power
+      icon: mdi:gauge-full
+      show_in_sidebar: true
+      filename: lovelace/petes-power.yaml
+
+# NOTE: MQTT is now configured via the HA UI / config flow (Settings →
+# Devices & services → Add integration → MQTT). YAML-based broker config
+# was removed in HA 2023.x. Entity-level mqtt: blocks are still allowed
+# (and used for advanced senders) but the broker connection itself isn't.
+# The Mosquitto add-on / external broker is wired up by config flow only.
+
+# NOTE: analytics opt-out is now done via HA UI (Settings → System →
+# General → Analytics) — no YAML key. We left both opt-outs disabled
+# during onboarding so this is a no-op.
+
+logger:
+  default: info
+  logs:
+    homeassistant.components.mqtt: warning

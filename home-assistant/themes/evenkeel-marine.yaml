@@ -1,0 +1,64 @@
+# EvenKeel · Marine Classic theme
+# Brass + navy + walnut. Evokes B&G Triton, Raymarine i70, varnished teak.
+
+evenkeel-marine:
+  # ── Base ────────────────────────────────────────────────
+  primary-color: "#c9a961"          # brass
+  accent-color: "#c9a961"
+  primary-background-color: "#0a1624"  # deep navy
+  secondary-background-color: "#14253a"  # navy
+  divider-color: "rgba(201,169,97,0.3)"
+
+  # ── Text ────────────────────────────────────────────────
+  primary-text-color: "#f4ecd8"      # bone
+  secondary-text-color: "#c9a961"    # brass
+  text-primary-color: "#f4ecd8"
+  disabled-text-color: "#7a6f5a"
+
+  # ── Cards ───────────────────────────────────────────────
+  card-background-color: "#14253a"
+  ha-card-background: "linear-gradient(135deg, #14253a 0%, #0f1d30 100%)"
+  ha-card-border-radius: "8px"
+  ha-card-box-shadow: "0 2px 6px rgba(0,0,0,0.5)"
+  ha-card-border-color: "rgba(201,169,97,0.4)"
+  ha-card-border-width: "2px"
+
+  # ── States ──────────────────────────────────────────────
+  state-icon-color: "#c9a961"
+  state-icon-active-color: "#e8c878"
+  state-icon-unavailable-color: "#5a4f3a"
+
+  # ── Severity (matches mockup #1 Marine Classic palette) ─
+  evenkeel-ok: "#2d6a4f"
+  evenkeel-warn: "#d4a373"
+  evenkeel-crit: "#8b1e1e"
+  evenkeel-info: "#5a8db2"
+
+  # ── Misc ────────────────────────────────────────────────
+  paper-item-icon-color: "#c9a961"
+  app-header-background-color: "#0a1624"
+  app-header-text-color: "#c9a961"
+
+  evenkeel-hero-font: "Georgia, 'Times New Roman', serif"
+  evenkeel-hero-weight: "700"
+  evenkeel-hero-tracking: "0.02em"
+
+  # Engraved-scroll backplate for hero tiles (used by card-mod)
+  evenkeel-scroll-bg: "linear-gradient(180deg, #f4ecd8 0%, #e8dcc0 100%)"
+  evenkeel-scroll-text: "#14253a"
+
+  # ── Modes ───────────────────────────────────────────────
+  modes:
+    light:
+      # Marine theme is deliberately dark even in "light mode" — it's
+      # an instrument-panel aesthetic. Brightness is controlled by HA's
+      # own brightness slider, not by light/dark.
+      primary-background-color: "#0a1624"
+      secondary-background-color: "#14253a"
+      card-background-color: "#14253a"
+      primary-text-color: "#f4ecd8"
+    dark:
+      primary-background-color: "#000000"
+      secondary-background-color: "#0a1624"
+      card-background-color: "#0a1624"
+      primary-text-color: "#c9a961"

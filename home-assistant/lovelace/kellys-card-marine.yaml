@@ -1,0 +1,283 @@
+# Marine Classic — brass + navy + walnut. Big circular gauges, compass, depth.
+
+title: How's My Boat — Marine
+theme: evenkeel-marine
+views:
+
+  - title: Bridge
+    path: boat
+    icon: mdi:ferry
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ════════════ STATION HEADING ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading_style: title
+            heading: 'HUNTER 41DS — Safe Harbor Sandusky'
+            icon: mdi:lighthouse
+
+          - type: glance
+            state_color: true
+            entities:
+              - entity: binary_sensor.boat_online
+                name: ONLINE
+              - entity: sensor.boat_power_source
+                name: POWER
+              - entity: binary_sensor.boat_anchor_armed
+                name: ANCHOR
+              - entity: sensor.boat_data_source
+                name: SOURCE
+
+      # ════════════ ALARM HERO ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.boat_bilge_water_detected
+                state: 'on'
+            card:
+              type: tile
+              entity: binary_sensor.boat_bilge_water_detected
+              name: 'EMERGENCY — WATER IN BILGE'
+              icon: mdi:water-alert
+              color: red
+              vertical: true
+
+      # ════════════ MAIN INSTRUMENT BANK ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: '⚓ HOUSE SYSTEMS'
+
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.boat_house_battery_v
+            name: HOUSE BANK
+            unit: V
+            min: 11
+            max: 14
+            needle: true
+            severity: { red: 11, yellow: 12, green: 12.4 }
+          - type: gauge
+            entity: sensor.boat_start_battery_v
+            name: STARTER
+            unit: V
+            min: 11
+            max: 14
+            needle: true
+            severity: { red: 11, yellow: 12, green: 12.4 }
+          - type: gauge
+            entity: sensor.boat_house_battery_soc
+            name: STATE OF CHARGE
+            unit: '%'
+            min: 0
+            max: 100
+            needle: true
+            severity: { red: 0, yellow: 25, green: 50 }
+
+      # ════════════ HELM INSTRUMENTS ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: '🧭 HELM'
+
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.boat_apparent_wind_speed
+            name: APPARENT WIND
+            unit: kn
+            min: 0
+            max: 40
+            needle: true
+            severity: { green: 0, yellow: 18, red: 30 }
+          - type: gauge
+            entity: sensor.boat_apparent_wind_angle
+            name: WIND ANGLE
+            unit: °
+            min: 0
+            max: 360
+            needle: true
+          - type: gauge
+            entity: sensor.boat_heading
+            name: HEADING
+            unit: °
+            min: 0
+            max: 360
+            needle: true
+
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.boat_depth
+            name: DEPTH
+            unit: m
+            min: 0
+            max: 30
+            needle: true
+            severity: { red: 0, yellow: 3, green: 6 }
+          - type: gauge
+            entity: sensor.boat_speed_over_ground
+            name: SPEED
+            unit: kn
+            min: 0
+            max: 12
+            needle: true
+            severity: { green: 0, yellow: 8, red: 10 }
+          - type: gauge
+            entity: sensor.boat_heel
+            name: HEEL
+            unit: °
+            min: -30
+            max: 30
+            needle: true
+
+      # ════════════ TANKS / FUEL ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: '⛽ TANKS'
+
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.boat_fresh_water
+            name: WATER
+            unit: '%'
+            min: 0
+            max: 100
+            needle: true
+            severity: { red: 0, yellow: 15, green: 30 }
+          - type: gauge
+            entity: sensor.boat_fuel
+            name: FUEL
+            unit: '%'
+            min: 0
+            max: 100
+            needle: true
+            severity: { red: 0, yellow: 15, green: 30 }
+          - type: gauge
+            entity: sensor.boat_holding_tank
+            name: HOLDING
+            unit: '%'
+            min: 0
+            max: 100
+            needle: true
+            severity: { green: 0, yellow: 70, red: 90 }
+
+      # ════════════ TEMPERATURE BOARD ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: '🌡 TEMPERATURE BOARD'
+
+      - type: grid
+        cards:
+          - type: tile
+            entity: sensor.boat_cabin_temperature
+            name: CABIN
+            icon: mdi:home-thermometer
+            vertical: true
+          - type: tile
+            entity: sensor.boat_v_berth_temperature
+            name: V-BERTH
+            icon: mdi:bed
+            vertical: true
+          - type: tile
+            entity: sensor.boat_galley_temperature
+            name: GALLEY
+            icon: mdi:silverware-fork-knife
+            vertical: true
+          - type: tile
+            entity: sensor.boat_engine_bay_temperature
+            name: ENGINE
+            icon: mdi:engine
+            vertical: true
+          - type: tile
+            entity: sensor.boat_refrigerator
+            name: ICEBOX
+            icon: mdi:fridge-outline
+            vertical: true
+          - type: tile
+            entity: sensor.boat_freezer
+            name: FREEZER
+            icon: mdi:snowflake
+            vertical: true
+
+      # ════════════ POSITION ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: '📍 POSITION'
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: map
+            default_zoom: 13
+            hours_to_show: 6
+            entities:
+              - device_tracker.boat_boat
+            theme_mode: dark
+
+      - type: grid
+        cards:
+          - type: glance
+            state_color: true
+            entities:
+              - entity: sensor.boat_latitude
+                name: LAT
+              - entity: sensor.boat_longitude
+                name: LON
+              - entity: sensor.boat_speed_through_water
+                name: STW
+              - entity: sensor.boat_course_over_ground
+                name: COG
+              - entity: sensor.boat_anchor_distance
+                name: ANCHOR M
+              - entity: sensor.boat_slip_distance
+                name: SLIP M
+
+      # ════════════ AIS LIST ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: '📡 AIS TRAFFIC'
+
+          - type: markdown
+            content: |
+              ### Vessels in Range — {{ states('sensor.boat_ais_targets_in_range') }} target(s)
+
+              **Nearest:** {{ states('sensor.boat_nearest_ais_vessel') }}
+              at **{{ states('sensor.boat_nearest_ais_range') }} nmi**
+
+      # ════════════ HISTORY ════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: history-graph
+            title: 'Wind & Heel — last 1h'
+            hours_to_show: 1
+            entities:
+              - sensor.boat_apparent_wind_speed
+              - sensor.boat_true_wind_speed
+              - sensor.boat_heel

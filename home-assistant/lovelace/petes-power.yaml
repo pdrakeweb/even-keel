@@ -1,0 +1,351 @@
+# Pete's Power — Data-dense diagnostic dashboard.
+# 4 tabs: Overview · Engine · AIS & Nav · Diagnostics
+
+title: Pete's Power
+theme: default
+views:
+
+  # ══════════════════════════ OVERVIEW ══════════════════════════
+  - title: Overview
+    path: overview
+    icon: mdi:gauge-full
+    type: sections
+    max_columns: 4
+    sections:
+
+      # KPI strip
+      - type: grid
+        column_span: 4
+        cards:
+          - type: glance
+            title: At a glance
+            columns: 8
+            state_color: true
+            entities:
+              - { entity: binary_sensor.boat_online,                name: Online }
+              - { entity: binary_sensor.boat_bilge_water_detected,  name: Bilge }
+              - { entity: binary_sensor.boat_shore_power,           name: Shore }
+              - { entity: binary_sensor.boat_generator_running,     name: Gen }
+              - { entity: binary_sensor.boat_engine_running,        name: Engine }
+              - { entity: binary_sensor.boat_anchor_armed,          name: Anchor }
+              - { entity: sensor.boat_data_source,                  name: Source }
+              - { entity: input_select.simulator_scenario,          name: Scenario }
+
+      # Power
+      - type: grid
+        column_span: 2
+        cards:
+          - type: history-graph
+            title: 'Battery voltages — 1h'
+            hours_to_show: 1
+            entities:
+              - sensor.boat_house_battery_v
+              - sensor.boat_start_battery_v
+          - type: gauge
+            entity: sensor.boat_house_battery_soc
+            name: House SoC
+            min: 0
+            max: 100
+            needle: true
+            severity: { red: 0, yellow: 25, green: 50 }
+          - type: glance
+            title: Power detail
+            columns: 4
+            state_color: true
+            entities:
+              - { entity: sensor.boat_house_battery_v,    name: V }
+              - { entity: sensor.boat_house_battery_a,    name: A }
+              - { entity: sensor.boat_house_battery_time_to_go, name: TTG }
+              - { entity: sensor.boat_start_battery_v,    name: Start }
+              - { entity: sensor.boat_shore_voltage,      name: Shore V }
+              - { entity: sensor.boat_shore_current,      name: Shore A }
+              - { entity: sensor.boat_solar_power,        name: Solar W }
+              - { entity: sensor.boat_solar_today,        name: kWh }
+
+      # Temperatures
+      - type: grid
+        column_span: 2
+        cards:
+          - type: history-graph
+            title: 'Temperatures — 1h'
+            hours_to_show: 1
+            entities:
+              - sensor.boat_cabin_temperature
+              - sensor.boat_engine_bay_temperature
+              - sensor.boat_refrigerator
+              - sensor.boat_freezer
+          - type: glance
+            title: Climate detail
+            columns: 5
+            state_color: true
+            entities:
+              - { entity: sensor.boat_cabin_temperature,   name: Cabin }
+              - { entity: sensor.boat_v_berth_temperature, name: V-berth }
+              - { entity: sensor.boat_head_temperature,    name: Head }
+              - { entity: sensor.boat_galley_temperature,  name: Galley }
+              - { entity: sensor.boat_nav_station_temperature, name: Nav }
+              - { entity: sensor.boat_lazarette_temperature, name: Laz }
+              - { entity: sensor.boat_engine_bay_temperature, name: Eng bay }
+              - { entity: sensor.boat_engine_intake_air_temp, name: Air }
+              - { entity: sensor.boat_refrigerator,        name: Fridge }
+              - { entity: sensor.boat_freezer,             name: Freezer }
+
+      # Tanks
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: Tanks
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+              - type: gauge
+                entity: sensor.boat_fresh_water
+                name: Water
+                unit: '%'
+                min: 0
+                max: 100
+                needle: true
+                severity: { red: 0, yellow: 15, green: 30 }
+              - type: gauge
+                entity: sensor.boat_fuel
+                name: Fuel
+                unit: '%'
+                min: 0
+                max: 100
+                needle: true
+                severity: { red: 0, yellow: 15, green: 30 }
+              - type: gauge
+                entity: sensor.boat_holding_tank
+                name: Holding
+                unit: '%'
+                min: 0
+                max: 100
+                needle: true
+                severity: { green: 0, yellow: 70, red: 90 }
+
+      # Position map
+      - type: grid
+        column_span: 2
+        cards:
+          - type: map
+            title: Position
+            default_zoom: 14
+            hours_to_show: 6
+            entities:
+              - device_tracker.boat_boat
+            theme_mode: dark
+
+      # Safety
+      - type: grid
+        column_span: 4
+        cards:
+          - type: glance
+            title: Safety
+            columns: 8
+            state_color: true
+            entities:
+              - { entity: binary_sensor.boat_bilge_water_detected, name: Bilge }
+              - { entity: binary_sensor.boat_smoke_alarm,          name: Smoke }
+              - { entity: sensor.boat_co_concentration,            name: CO }
+              - { entity: binary_sensor.boat_head_leak,            name: Head leak }
+              - { entity: binary_sensor.boat_galley_leak,          name: Galley leak }
+              - { entity: binary_sensor.boat_engine_leak,          name: Eng leak }
+              - { entity: binary_sensor.boat_forepeak_hatch,       name: Forepeak }
+              - { entity: binary_sensor.boat_main_hatch,           name: Main hatch }
+
+  # ══════════════════════════ ENGINE ══════════════════════════
+  - title: Engine
+    path: engine
+    icon: mdi:engine
+    type: sections
+    max_columns: 3
+    sections:
+
+      - type: grid
+        column_span: 3
+        cards:
+          - type: glance
+            title: Engine
+            columns: 5
+            state_color: true
+            entities:
+              - { entity: binary_sensor.boat_engine_running, name: Running }
+              - { entity: sensor.boat_engine_rpm,            name: RPM }
+              - { entity: sensor.boat_engine_oil_pressure,   name: Oil P }
+              - { entity: sensor.boat_engine_coolant,        name: Coolant }
+              - { entity: sensor.boat_engine_hours,          name: Hours }
+
+      - type: grid
+        cards:
+          - type: gauge
+            entity: sensor.boat_engine_rpm
+            name: RPM
+            min: 0
+            max: 4000
+            needle: true
+            severity: { green: 1500, yellow: 3200, red: 3800 }
+          - type: gauge
+            entity: sensor.boat_engine_coolant
+            name: Coolant
+            unit: °C
+            min: 0
+            max: 110
+            needle: true
+            severity: { green: 70, yellow: 95, red: 102 }
+          - type: gauge
+            entity: sensor.boat_alternator_v
+            name: Alternator
+            unit: V
+            min: 0
+            max: 16
+            needle: true
+            severity: { red: 12, yellow: 13.2, green: 13.8 }
+
+      - type: grid
+        column_span: 3
+        cards:
+          - type: history-graph
+            title: 'Engine — last 1h'
+            hours_to_show: 1
+            entities:
+              - sensor.boat_engine_rpm
+              - sensor.boat_engine_coolant
+              - sensor.boat_engine_oil_pressure
+
+      - type: grid
+        column_span: 3
+        cards:
+          - type: history-graph
+            title: 'Generator runtime'
+            hours_to_show: 6
+            entities:
+              - sensor.boat_generator_runtime
+              - sensor.boat_engine_hours
+
+  # ══════════════════════════ AIS & NAV ══════════════════════════
+  - title: AIS & Nav
+    path: ais
+    icon: mdi:radar
+    type: sections
+    max_columns: 3
+    sections:
+
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: 'AIS Receiver — {{ states(''sensor.boat_ais_targets_in_range'') }} target(s) in range'
+            icon: mdi:radar
+
+          - type: glance
+            state_color: true
+            entities:
+              - { entity: sensor.boat_ais_targets_in_range, name: In range }
+              - { entity: sensor.boat_nearest_ais_vessel,   name: Nearest }
+              - { entity: sensor.boat_nearest_ais_range,    name: Distance nm }
+
+      - type: grid
+        column_span: 3
+        cards:
+          - type: markdown
+            title: 'Live AIS targets'
+            content: |
+              | MMSI | Name | Type | Bearing | Range | COG / SOG | Age |
+              |------|------|------|---------|-------|-----------|-----|
+              {%- set ns = namespace(rows='') %}
+              {%- if states('sensor.boat_ais_targets_in_range')|int(0) > 0 %}
+              {%- for i in range(states('sensor.boat_ais_targets_in_range')|int(0)) %}
+              {%- if i == 0 %}| {{ states('sensor.boat_nearest_ais_vessel') }} | (nearest) | — | — | {{ states('sensor.boat_nearest_ais_range') }} nmi | — | — |
+              {%- endif %}
+              {%- endfor %}
+              {%- else %}
+              | — | No vessels in range | | | | | |
+              {%- endif %}
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: map
+            title: Position + AIS targets
+            default_zoom: 12
+            hours_to_show: 12
+            entities:
+              - device_tracker.boat_boat
+            theme_mode: dark
+
+      - type: grid
+        cards:
+          - type: heading
+            heading_style: subtitle
+            heading: Sailing
+          - type: gauge
+            entity: sensor.boat_apparent_wind_speed
+            name: AWS
+            unit: kn
+            min: 0
+            max: 40
+            severity: { green: 0, yellow: 18, red: 30 }
+          - type: gauge
+            entity: sensor.boat_true_wind_speed
+            name: TWS
+            unit: kn
+            min: 0
+            max: 40
+            severity: { green: 0, yellow: 18, red: 30 }
+          - type: gauge
+            entity: sensor.boat_depth
+            name: Depth
+            unit: m
+            min: 0
+            max: 30
+            severity: { red: 0, yellow: 3, green: 6 }
+          - type: glance
+            entities:
+              - sensor.boat_speed_over_ground
+              - sensor.boat_speed_through_water
+              - sensor.boat_course_over_ground
+              - sensor.boat_heading
+              - sensor.boat_apparent_wind_angle
+              - sensor.boat_true_wind_direction
+              - sensor.boat_heel
+              - sensor.boat_pitch
+
+  # ══════════════════════════ DIAGNOSTICS ══════════════════════════
+  - title: Diagnostics
+    path: diag
+    icon: mdi:test-tube
+    type: sections
+    sections:
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: System
+          - type: entities
+            entities:
+              - sensor.boat_wifi_rssi
+              - sensor.boat_uptime
+              - binary_sensor.boat_online
+              - sensor.boat_data_source
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Simulator control
+          - type: entities
+            entities:
+              - input_boolean.use_simulator
+              - input_select.simulator_scenario
+              - input_boolean.boat_demo_mode
+
+      - type: grid
+        column_span: 3
+        cards:
+          - type: history-graph
+            title: 'WiFi RSSI'
+            hours_to_show: 1
+            entities:
+              - sensor.boat_wifi_rssi

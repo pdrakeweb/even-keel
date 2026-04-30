@@ -5,6 +5,8 @@ home-assistant/secrets.yaml
 home-assistant/known_devices.yaml
 home-assistant/.storage/
 home-assistant/.HA_VERSION
+home-assistant/.cache/
+home-assistant/.ha_run.lock
 home-assistant/.cloud/
 home-assistant/home-assistant.log*
 home-assistant/home-assistant_v2.db*
