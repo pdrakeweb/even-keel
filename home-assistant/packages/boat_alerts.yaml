@@ -164,3 +164,40 @@ automation:
       - service: persistent_notification.dismiss
         data:
           notification_id: anchor_drag
+
+  # ─────────────────── SHORE POWER LOSS (Phase 6) ───────────────────
+  - alias: EvenKeel · Shore power lost — alert
+    id: evenkeel_alert_shore_power_lost
+    description: >
+      Shore power dropping while at the slip is the early-warning
+      signal for a tripped pedestal breaker, a loose connector, or
+      a marina power outage. Tier 1 alert — loss of charging means
+      the battery bank is on borrowed time. Fires immediately so
+      Pete can troubleshoot before SoC drops below the critical
+      threshold an hour later.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.boat_shore_power
+        to: 'off'
+    action:
+      - service: persistent_notification.create
+        data:
+          notification_id: shore_power_lost
+          title: "Shore power LOST"
+          message: >
+            Shore power dropped at the boat
+            ({{ now().strftime('%H:%M') }}). Charging stopped — check
+            the pedestal and connector before SoC tanks.
+
+  - alias: EvenKeel · Shore power restored — clear alert
+    id: evenkeel_clear_shore_power_lost
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.boat_shore_power
+        to: 'on'
+    action:
+      - service: persistent_notification.dismiss
+        data:
+          notification_id: shore_power_lost
