@@ -25,6 +25,7 @@ if sys.platform == "win32":
 # every @given/@when/@then is registered before any scenario executes,
 # regardless of which test_*.py module discovers the .feature file.
 from steps.ais_steps import *  # noqa: F401, F403
+from steps.anchor_steps import *  # noqa: F401, F403
 from steps.battery_steps import *  # noqa: F401, F403
 from steps.bilge_steps import *  # noqa: F401, F403
 from steps.common_steps import *  # noqa: F401, F403

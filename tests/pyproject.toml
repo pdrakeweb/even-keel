@@ -38,4 +38,6 @@ markers = [
   "live: requires deployed hardware",
   "tls: exercises TLS happy path",
   "telemetry: low-level data-plane tests (no HA / notifications)",
+  "recovery: state-restoration / clear-after-alarm scenarios",
+  "offline: scenarios that exercise broker disconnection or LWT",
 ]
