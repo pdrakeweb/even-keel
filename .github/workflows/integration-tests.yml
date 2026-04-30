@@ -124,6 +124,45 @@ jobs:
           echo "HA_URL=http://localhost:8123" >> "$GITHUB_ENV"
           echo "HA bootstrap complete"
 
+      - name: Configure HA MQTT integration via config flow
+        # HA 2023.x removed YAML broker configuration — the MQTT
+        # integration is set up exclusively through the config-flow
+        # UI (or its REST/WebSocket equivalent). Drive the flow
+        # programmatically so HA actually subscribes to MQTT-discovery
+        # topics; otherwise the boat entities never materialise.
+        run: |
+          # Start the MQTT config flow — returns flow_id + first step.
+          FLOW_INIT=$(curl -s -X POST http://localhost:8123/api/config/config_entries/flow \
+            -H "Authorization: Bearer $HA_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"handler":"mqtt","show_advanced_options":true}')
+          FLOW_ID=$(echo "$FLOW_INIT" | python -c "import json,sys;print(json.load(sys.stdin).get('flow_id',''))")
+          if [ -z "$FLOW_ID" ]; then
+            echo "::error::could not start MQTT config flow: $FLOW_INIT"
+            exit 1
+          fi
+          echo "MQTT flow started: $FLOW_ID"
+
+          # Configure the broker — broker / port / discovery on.
+          FLOW_CFG=$(curl -s -X POST "http://localhost:8123/api/config/config_entries/flow/$FLOW_ID" \
+            -H "Authorization: Bearer $HA_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "broker":"localhost",
+              "port":1883,
+              "discovery":true,
+              "discovery_prefix":"homeassistant"
+            }')
+          RESULT_TYPE=$(echo "$FLOW_CFG" | python -c "import json,sys;print(json.load(sys.stdin).get('type',''))")
+          if [ "$RESULT_TYPE" != "create_entry" ]; then
+            echo "::error::MQTT flow did not complete (type=$RESULT_TYPE): $FLOW_CFG"
+            exit 1
+          fi
+          echo "MQTT integration created"
+
+          # Give HA a moment to subscribe to discovery topics.
+          sleep 5
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
