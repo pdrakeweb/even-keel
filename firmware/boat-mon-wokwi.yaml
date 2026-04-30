@@ -1,0 +1,37 @@
+# BoatMon-1 — Wokwi-only build.
+#
+# Strips the production boat-mon.yaml down to just the boot / WiFi /
+# MQTT / health surface so the headless ESP32-S3 in CI can finish
+# the on_boot logger.log within Wokwi's simulation timeout. The full
+# production build (boat-mon.yaml) layers on bilge, temperature,
+# power (I²C), engine (pulse_counter), and AIS (UART + stream_server).
+# Each adds non-trivial init time; under Wokwi's <1× wall-clock the
+# combined boot exceeded 4 minutes.
+#
+# This file MUST stay byte-identical to boat-mon.yaml above the
+# `packages:` block so the boot-message contract holds.
+substitutions:
+  device_name: boatmon-wokwi
+  friendly_name: "BoatMon-1"
+  device_topic: boat/hunter41
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  comment: "EvenKeel BoatMon (Wokwi smoke test)"
+  on_boot:
+    priority: -100
+    then:
+      - logger.log:
+          level: INFO
+          format: "BoatMon-1 booted"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+packages:
+  base:    !include packages/base.yaml
+  network: !include packages/network.yaml
+  health:  !include packages/health.yaml

@@ -32,11 +32,11 @@ jobs:
       - name: Check firmware + Wokwi config exist
         id: check
         run: |
-          if [ -f firmware/boat-mon.yaml ] && [ -f tests/wokwi/wokwi.toml ]; then
+          if [ -f firmware/boat-mon-wokwi.yaml ] && [ -f tests/wokwi/wokwi.toml ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::firmware/boat-mon.yaml or tests/wokwi/wokwi.toml not yet present — Wokwi smoke test skipped."
+            echo "::notice::firmware/boat-mon-wokwi.yaml or tests/wokwi/wokwi.toml not yet present — Wokwi smoke test skipped."
           fi
 
       - name: Drop in CI placeholder secrets
@@ -48,11 +48,11 @@ jobs:
           # WiFi passwords must be at least 8 characters; use a long placeholder.
           sed -i 's|REPLACE_ME|ci-placeholder|g' firmware/secrets.yaml
 
-      - name: Build ESPHome firmware
+      - name: Build ESPHome firmware (Wokwi-slim variant)
         if: steps.check.outputs.ready == 'true'
         uses: esphome/build-action@v6
         with:
-          yaml-file: firmware/boat-mon.yaml
+          yaml-file: firmware/boat-mon-wokwi.yaml
           version: latest
 
       - name: Confirm Wokwi token is configured
@@ -72,11 +72,9 @@ jobs:
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: tests/wokwi
-          # 8-package firmware boot in Wokwi: WiFi-radio retry, MQTT
-          # connect-retry, I2C bus scan with no devices, 1-Wire scan,
-          # UART pulses_per_min counter init, etc. all run before the
-          # on_boot:priority:-100 logger.log fires. 90 s wasn't enough;
-          # 180 s gives slack for cold runners.
-          timeout: 180000
+          # Slim Wokwi-only firmware (boat-mon-wokwi.yaml) — base +
+          # network + health only. Boot is fast under simulation since
+          # there's no I²C / 1-Wire / UART scanning. 120 s is plenty.
+          timeout: 120000
           expect_text: "BoatMon-1 booted"
           fail_text: "Guru Meditation Error"

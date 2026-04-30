@@ -6,5 +6,9 @@
 # firmware/.esphome/build/boatmon-1/.pioenvs/boatmon-1/.
 [wokwi]
 version = 1
-firmware = "../../firmware/.esphome/build/boatmon-1/.pioenvs/boatmon-1/firmware.factory.bin"
-elf      = "../../firmware/.esphome/build/boatmon-1/.pioenvs/boatmon-1/firmware.elf"
+# Wokwi smoke test runs the slim boat-mon-wokwi.yaml build (base +
+# network + health only) so the full 8-package production firmware
+# doesn't time out under simulation. Both share the same on_boot
+# "BoatMon-1 booted" contract.
+firmware = "../../firmware/.esphome/build/boatmon-wokwi/.pioenvs/boatmon-wokwi/firmware.factory.bin"
+elf      = "../../firmware/.esphome/build/boatmon-wokwi/.pioenvs/boatmon-wokwi/firmware.elf"
