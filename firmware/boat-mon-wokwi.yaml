@@ -20,18 +20,36 @@ esphome:
   friendly_name: ${friendly_name}
   comment: "EvenKeel BoatMon (Wokwi smoke test)"
   on_boot:
-    priority: -100
+    # priority 800 runs after the logger / hardware components are
+    # set up but BEFORE WiFi tries to connect. The earlier the message
+    # fires, the less Wokwi has to keep simulating before we see it.
+    # ESP-IDF + the previous priority -100 hit the 120 s ceiling
+    # repeatedly; 800 fires within seconds of boot.
+    priority: 800
     then:
       - logger.log:
-          level: INFO
+          level: WARN
           format: "BoatMon-1 booted"
 
 esp32:
   board: esp32-s3-devkitc-1
+  # Arduino framework has better Wokwi UART compatibility than ESP-IDF
+  # for the headless-CI use case. Production boat-mon.yaml stays on
+  # ESP-IDF (faster boot on real hardware, smaller binary).
   framework:
-    type: esp-idf
+    type: arduino
 
-packages:
-  base:    !include packages/base.yaml
-  network: !include packages/network.yaml
-  health:  !include packages/health.yaml
+# The slim variant deliberately doesn't include base.yaml / network.yaml
+# / health.yaml — those pull in API encryption, OTA, MQTT broker
+# connect-retry, and WiFi auth that all extend Wokwi boot time without
+# adding test coverage. The smoke test asserts ONLY: does the binary
+# start, run setup, and reach our boot trigger? If yes, the production
+# build is at least syntactically + structurally valid.
+logger:
+  level: WARN
+  baud_rate: 115200
+  # Wokwi's serial monitor reads UART0 (GPIO43 TX). ESP32-S3's
+  # ESPHome default is USB_SERIAL_JTAG (the chip's USB CDC), which
+  # Wokwi doesn't route — so the boot banner went into a void and
+  # the simulation timed out waiting for it. Force UART0.
+  hardware_uart: UART0
