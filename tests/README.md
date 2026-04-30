@@ -34,11 +34,24 @@ CI runs the virtual-mode suite on every push touching `tests/**` or
 
 ## Status
 
-**Iteration 2C complete.** Three Gherkin scenarios green:
-`features/telemetry/bilge_publication.feature`. The aspirational
-`features/alerts/bilge_alarm.feature` covers the full Phase 6
-notification path (HA REST + Pushover + Sonos) and is bound to a
-test_*.py once the HA/Pushover adapters land.
+**36 tests green in CI** (Linux runner, Mosquitto + Chromium service containers):
+
+- 23 Gherkin scenarios across 7 feature files (bilge, battery, engine,
+  leak, AIS targets, anchor watch — all under `features/telemetry/` and
+  `features/ais/`)
+- 7 `SimulatorPublisher` integration tests that spin up the real
+  simulator publish loop and assert on what lands on MQTT
+- 6 Playwright e2e tests against the production custom-card bundle in
+  real Chromium (skipped on Windows; CI Linux runs them)
+
+Three-mode adapter harness is structurally complete — see
+[`adapters/README.md`](adapters/README.md). Currently only `--mode=virtual`
+runs end-to-end; HIL and live skeletons raise `NotImplementedError` at
+startup until Phase 4 / Phase 6 commissioning.
+
+The aspirational `features/alerts/bilge_alarm.feature` covers the full
+Phase 6 notification path (HA REST + Pushover + Sonos). It's unbound
+to a `test_*.py` until the HA REST adapter lands.
 
 ## Layout
 
