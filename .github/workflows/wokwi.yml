@@ -72,6 +72,11 @@ jobs:
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: tests/wokwi
-          timeout: 90000
+          # 8-package firmware boot in Wokwi: WiFi-radio retry, MQTT
+          # connect-retry, I2C bus scan with no devices, 1-Wire scan,
+          # UART pulses_per_min counter init, etc. all run before the
+          # on_boot:priority:-100 logger.log fires. 90 s wasn't enough;
+          # 180 s gives slack for cold runners.
+          timeout: 180000
           expect_text: "BoatMon-1 booted"
           fail_text: "Guru Meditation Error"
