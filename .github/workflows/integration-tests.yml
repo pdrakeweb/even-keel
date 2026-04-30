@@ -235,8 +235,31 @@ jobs:
         # Excludes both the Playwright suite and the HA-bridged
         # bilge_alarm_minimal scenarios so a real BDD/simulator
         # regression isn't tangled up with HA setup wobbles.
+        # Tee output to a file so failures are visible in the failure-
+        # summary step below even when the workflow log API is opaque.
         working-directory: tests
-        run: pytest --ignore=test_card_e2e.py --ignore=test_bilge_alarm_minimal.py -v --tb=short
+        run: |
+          set -o pipefail
+          pytest --ignore=test_card_e2e.py --ignore=test_bilge_alarm_minimal.py \
+            -v --tb=long 2>&1 | tee /tmp/pytest-bdd.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Echo pytest BDD failure summary as annotations
+        # Workflow logs require admin auth to download via the API,
+        # but `::error::` annotations are exposed via the public
+        # check-runs/annotations endpoint. Emit the pytest summary
+        # tail as annotation lines so failures are diagnosable from
+        # outside.
+        if: failure()
+        run: |
+          echo "===== last 80 lines of pytest output ====="
+          tail -80 /tmp/pytest-bdd.log
+          echo "===== emitting annotations ====="
+          tail -30 /tmp/pytest-bdd.log | while IFS= read -r line; do
+            # Strip ANSI for cleaner annotation text.
+            clean=$(echo "$line" | sed 's/\x1b\[[0-9;]*m//g')
+            echo "::error::pytest: $clean"
+          done
 
       - name: Run pytest (HA-bridged scenarios)
         # Iteration 4B: bilge MQTT → HA binary_sensor flips. Isolated
