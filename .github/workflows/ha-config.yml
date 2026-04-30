@@ -1,0 +1,55 @@
+name: HA config check
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "home-assistant/**"
+      - ".github/workflows/ha-config.yml"
+  pull_request:
+    paths:
+      - "home-assistant/**"
+      - ".github/workflows/ha-config.yml"
+  workflow_dispatch:
+
+jobs:
+  yaml-syntax:
+    name: YAML syntax (yamllint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint YAML
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: home-assistant/
+          # Relaxed: HA YAML uses long lines, document-end markers, etc.
+          # We care about valid syntax + obvious mistakes, not strict format.
+          config_data: |
+            extends: relaxed
+            rules:
+              line-length: disable
+              document-start: disable
+              truthy: disable
+              comments: disable
+
+  hass-config:
+    name: hass --script check_config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Drop in placeholder secrets
+        run: |
+          cp home-assistant/secrets.yaml.example home-assistant/secrets.yaml
+          # CI runs without a real broker; use placeholders.
+          sed -i 's/REPLACE_ME/test/g' home-assistant/secrets.yaml
+
+      - name: Pull HA Docker image
+        run: docker pull ghcr.io/home-assistant/home-assistant:stable
+
+      - name: Run config check
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/home-assistant:/config \
+            ghcr.io/home-assistant/home-assistant:stable \
+            python -m homeassistant --script check_config --config /config

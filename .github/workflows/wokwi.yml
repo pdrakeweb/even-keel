@@ -1,0 +1,56 @@
+name: Wokwi firmware simulation
+
+# Iteration 2 lights this up — Wokwi runs the ESPHome firmware in a
+# headless ESP32-S3 simulator and asserts the AIS-TCP-bridge scenario.
+# For now it's a placeholder skeleton so the workflow + secret wiring
+# is set up before the firmware lands.
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "firmware/**"
+      - "tests/wokwi/**"
+      - ".github/workflows/wokwi.yml"
+  pull_request:
+    paths:
+      - "firmware/**"
+      - "tests/wokwi/**"
+      - ".github/workflows/wokwi.yml"
+  workflow_dispatch:
+
+jobs:
+  wokwi:
+    name: Wokwi smoke test
+    # Skip if no Wokwi token configured — keeps PRs from rando contributors
+    # from failing CI just because they don't have a token.
+    if: ${{ vars.WOKWI_ENABLED == 'true' || secrets.WOKWI_CLI_TOKEN != '' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check firmware exists
+        id: check
+        run: |
+          if [ -f firmware/boat-mon.yaml ] && [ -f tests/wokwi/wokwi.toml ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::firmware/boat-mon.yaml or tests/wokwi/wokwi.toml not yet present — skipping Wokwi run."
+          fi
+
+      - if: steps.check.outputs.ready == 'true'
+        uses: esphome/build-action@v6
+        with:
+          yaml-file: firmware/boat-mon.yaml
+          version: latest
+
+      - if: steps.check.outputs.ready == 'true'
+        uses: wokwi/wokwi-ci-action@v1
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          path: tests/wokwi
+          timeout: 60000
+          expect_text: "BoatMon-1 booted"
+          fail_text: "Guru Meditation Error"
