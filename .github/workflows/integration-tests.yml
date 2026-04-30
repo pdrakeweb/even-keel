@@ -212,17 +212,21 @@ jobs:
 
       - name: Diagnostic — HA + MQTT state
         # Help future-me (or another agent) diagnose without admin log
-        # access. List the entities HA knows about and the retained
-        # discovery topics. Cheap, only runs in CI.
+        # access. Lists boat-related HA entities + retained MQTT
+        # discovery topics. The Python is in a separate script file
+        # so YAML indentation doesn't decide it's a new top-level key.
         run: |
+          cat > /tmp/list-boat-entities.py <<'PYEOF'
+          import json, sys
+          data = json.load(sys.stdin)
+          boat = [s for s in data if "boat" in s.get("entity_id", "") or "evenkeel" in s.get("entity_id", "")]
+          print(f"{len(boat)} boat-related entities of {len(data)} total")
+          for s in boat[:30]:
+              print(f"  {s['entity_id']:55} = {str(s.get('state', '?'))[:40]}")
+          PYEOF
           echo "===== HA states (boat-related) ====="
           curl -s -H "Authorization: Bearer $HA_TOKEN" http://localhost:8123/api/states \
-            | python -c "import json,sys;
-data = json.load(sys.stdin)
-boat = [s for s in data if 'boat' in s.get('entity_id','') or 'evenkeel' in s.get('entity_id','')]
-print(f'{len(boat)} boat-related entities of {len(data)} total')
-for s in boat[:30]:
-    print(f\"  {s['entity_id']:55} = {s.get('state','?')[:40]}\")"
+            | python3 /tmp/list-boat-entities.py
           echo "===== Mosquitto retained discovery topics ====="
           docker exec mosquitto mosquitto_sub -h localhost -t 'homeassistant/#' -W 2 -v 2>/dev/null | head -20 || echo "(none)"
           echo "==============================="
