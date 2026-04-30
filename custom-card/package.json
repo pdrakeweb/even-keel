@@ -1,6 +1,6 @@
 {
   "name": "evenkeel-boat-card",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Top-down sailboat diagram custom Lovelace card for EvenKeel",
   "type": "module",
   "main": "dist/evenkeel-boat-card.js",
