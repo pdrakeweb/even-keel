@@ -58,17 +58,59 @@ jobs:
       - name: Start Home Assistant
         # Spins up the production HA Docker image against a copy of
         # the home-assistant/ tree with .storage stripped (so HA's
-        # onboarding flow runs fresh). The same configuration.yaml +
-        # packages/* the boat dashboard uses also drives this CI
-        # instance — the Captain's Glance template sensor is real,
-        # not mocked, so when bilge_alarm.feature flips it, that's
-        # the actual production logic firing.
+        # onboarding flow runs fresh). Pre-bakes a single config_entry
+        # for the MQTT integration so HA subscribes to the local
+        # mosquitto on first boot — the post-2023 HA UI-only flow API
+        # turned out to be brittle from CI; pre-baking is deterministic
+        # across HA versions as long as the storage shape holds.
         run: |
-          mkdir -p /tmp/ha-config
+          mkdir -p /tmp/ha-config/.storage
           cp -r home-assistant/. /tmp/ha-config/
           rm -rf /tmp/ha-config/.storage  # fresh user storage
+          mkdir -p /tmp/ha-config/.storage
           cp /tmp/ha-config/secrets.yaml.example /tmp/ha-config/secrets.yaml
           sed -i 's|REPLACE_ME|ci-test-secret-12345|g' /tmp/ha-config/secrets.yaml
+
+          # Pre-bake the MQTT integration entry. HA reads
+          # .storage/core.config_entries on boot and sets up integrations
+          # before the onboarding flow runs.
+          python3 - <<'PY'
+          import json, uuid
+          from datetime import datetime, timezone
+          now = datetime.now(timezone.utc).isoformat()
+          entry = {
+              "entry_id": uuid.uuid4().hex,
+              "version": 1,
+              "minor_version": 2,
+              "domain": "mqtt",
+              "title": "Mosquitto (CI)",
+              "data": {
+                  "broker": "localhost",
+                  "port": 1883,
+                  "discovery": True,
+                  "discovery_prefix": "homeassistant"
+              },
+              "options": {},
+              "pref_disable_new_entities": False,
+              "pref_disable_polling": False,
+              "source": "user",
+              "unique_id": None,
+              "disabled_by": None,
+              "created_at": now,
+              "modified_at": now,
+              "discovery_keys": {},
+              "subentries": []
+          }
+          payload = {
+              "version": 1,
+              "minor_version": 5,
+              "key": "core.config_entries",
+              "data": {"entries": [entry]}
+          }
+          with open("/tmp/ha-config/.storage/core.config_entries", "w") as f:
+              json.dump(payload, f, indent=2)
+          print("pre-baked MQTT config entry:", entry["entry_id"])
+          PY
 
           docker run -d --name homeassistant \
             --network host \
@@ -124,44 +166,14 @@ jobs:
           echo "HA_URL=http://localhost:8123" >> "$GITHUB_ENV"
           echo "HA bootstrap complete"
 
-      - name: Configure HA MQTT integration via config flow
-        # HA 2023.x removed YAML broker configuration — the MQTT
-        # integration is set up exclusively through the config-flow
-        # UI (or its REST/WebSocket equivalent). Drive the flow
-        # programmatically so HA actually subscribes to MQTT-discovery
-        # topics; otherwise the boat entities never materialise.
-        run: |
-          # Start the MQTT config flow — returns flow_id + first step.
-          FLOW_INIT=$(curl -s -X POST http://localhost:8123/api/config/config_entries/flow \
-            -H "Authorization: Bearer $HA_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"handler":"mqtt","show_advanced_options":true}')
-          FLOW_ID=$(echo "$FLOW_INIT" | python -c "import json,sys;print(json.load(sys.stdin).get('flow_id',''))")
-          if [ -z "$FLOW_ID" ]; then
-            echo "::error::could not start MQTT config flow: $FLOW_INIT"
-            exit 1
-          fi
-          echo "MQTT flow started: $FLOW_ID"
-
-          # Configure the broker — broker / port / discovery on.
-          FLOW_CFG=$(curl -s -X POST "http://localhost:8123/api/config/config_entries/flow/$FLOW_ID" \
-            -H "Authorization: Bearer $HA_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "broker":"localhost",
-              "port":1883,
-              "discovery":true,
-              "discovery_prefix":"homeassistant"
-            }')
-          RESULT_TYPE=$(echo "$FLOW_CFG" | python -c "import json,sys;print(json.load(sys.stdin).get('type',''))")
-          if [ "$RESULT_TYPE" != "create_entry" ]; then
-            echo "::error::MQTT flow did not complete (type=$RESULT_TYPE): $FLOW_CFG"
-            exit 1
-          fi
-          echo "MQTT integration created"
-
-          # Give HA a moment to subscribe to discovery topics.
-          sleep 5
+      - name: Wait for HA MQTT integration to settle
+        # MQTT integration is pre-baked in .storage/core.config_entries
+        # (see "Start Home Assistant" step). HA loads it during boot;
+        # by the time /manifest.json responds, MQTT is connected to
+        # mosquitto and subscribed to the homeassistant/# discovery
+        # tree. A short pause lets discovery topic subscription settle
+        # before the test harness publishes the first discovery payload.
+        run: sleep 3
 
       - uses: actions/setup-python@v5
         with:
