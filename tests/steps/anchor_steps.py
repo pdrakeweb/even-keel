@@ -9,6 +9,7 @@ from __future__ import annotations
 from pytest_bdd import given, parsers, when
 
 
+@given("the anchor is disarmed")
 @when("the anchor is disarmed")
 async def anchor_disarmed(boat) -> None:
     await boat.set_anchor(False, 0.0)

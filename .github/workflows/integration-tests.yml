@@ -242,6 +242,7 @@ jobs:
           pytest --ignore=test_card_e2e.py \
                  --ignore=test_bilge_alarm_minimal.py \
                  --ignore=test_battery_alarm.py \
+                 --ignore=test_anchor_alarm.py \
             -v --tb=long 2>&1 | tee /tmp/pytest-bdd.log
           exit ${PIPESTATUS[0]}
 
@@ -272,7 +273,9 @@ jobs:
         working-directory: tests
         run: |
           set -o pipefail
-          pytest test_bilge_alarm_minimal.py test_battery_alarm.py \
+          pytest test_bilge_alarm_minimal.py \
+                 test_battery_alarm.py \
+                 test_anchor_alarm.py \
             -v --tb=long -rs 2>&1 | tee /tmp/pytest-ha.log
           exit ${PIPESTATUS[0]}
 

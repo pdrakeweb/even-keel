@@ -105,3 +105,62 @@ automation:
       - service: persistent_notification.dismiss
         data:
           notification_id: battery_low
+
+  # ─────────────────── ANCHOR DRAG (Phase 9) ───────────────────
+  - alias: EvenKeel · Anchor drag — alert
+    id: evenkeel_alert_anchor_drag
+    description: >
+      Anchor armed AND drift past 30 m is the recognized "drag"
+      threshold for a 41ft sailboat with typical 7:1 scope. Catastrophic
+      if not noticed quickly — the boat is actually moving with no
+      power, no helm, no situational awareness.
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.boat_anchor_distance
+        above: 30
+    condition:
+      - condition: state
+        entity_id: binary_sensor.boat_anchor_armed
+        state: 'on'
+    action:
+      - service: persistent_notification.create
+        data:
+          notification_id: anchor_drag
+          title: "ANCHOR DRAG"
+          message: >
+            Boat has drifted {{ states('sensor.boat_anchor_distance') }} m
+            from anchor reference. Check NOW.
+
+  - alias: EvenKeel · Anchor recovered — clear drag alert
+    id: evenkeel_clear_anchor_drag_recover
+    description: >
+      Drift dropped back below 20 m (10 m hysteresis from the 30 m
+      trigger). Anchor probably re-set or boat swung back into the
+      acceptable circle. Clear the alert; user can investigate at
+      leisure.
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.boat_anchor_distance
+        below: 20
+    action:
+      - service: persistent_notification.dismiss
+        data:
+          notification_id: anchor_drag
+
+  - alias: EvenKeel · Anchor disarmed — clear drag alert
+    id: evenkeel_clear_anchor_drag_disarmed
+    description: >
+      Disarming the anchor means we're underway and any drift reading
+      is meaningless. Clear any lingering alert so it doesn't haunt
+      the next anchorage.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.boat_anchor_armed
+        to: 'off'
+    action:
+      - service: persistent_notification.dismiss
+        data:
+          notification_id: anchor_drag
