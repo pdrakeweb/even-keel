@@ -22,31 +22,30 @@ on:
 jobs:
   wokwi:
     name: Wokwi smoke test
-    # Skip if no Wokwi token configured — keeps PRs from rando contributors
-    # from failing CI just because they don't have a token.
-    if: ${{ vars.WOKWI_ENABLED == 'true' || secrets.WOKWI_CLI_TOKEN != '' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check firmware exists
+      - name: Check firmware + Wokwi config exist
         id: check
         run: |
           if [ -f firmware/boat-mon.yaml ] && [ -f tests/wokwi/wokwi.toml ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::firmware/boat-mon.yaml or tests/wokwi/wokwi.toml not yet present — skipping Wokwi run."
+            echo "::notice::firmware/boat-mon.yaml or tests/wokwi/wokwi.toml not yet present — Wokwi smoke test skipped (Iteration 2)."
           fi
 
-      - if: steps.check.outputs.ready == 'true'
+      - name: Build ESPHome firmware
+        if: steps.check.outputs.ready == 'true'
         uses: esphome/build-action@v6
         with:
           yaml-file: firmware/boat-mon.yaml
           version: latest
 
-      - if: steps.check.outputs.ready == 'true'
+      - name: Run Wokwi simulation
+        if: steps.check.outputs.ready == 'true'
         uses: wokwi/wokwi-ci-action@v1
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
