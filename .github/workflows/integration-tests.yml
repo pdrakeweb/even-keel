@@ -12,11 +12,13 @@ on:
     paths:
       - "tests/**"
       - "simulator/**"
+      - "custom-card/**"
       - ".github/workflows/integration-tests.yml"
   pull_request:
     paths:
       - "tests/**"
       - "simulator/**"
+      - "custom-card/**"
       - ".github/workflows/integration-tests.yml"
   workflow_dispatch:
 
@@ -59,13 +61,34 @@ jobs:
             tests/requirements.txt
             simulator/pyproject.toml
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: custom-card/package-lock.json
+
+      - name: Build the custom-card bundle
+        # Playwright e2e tests load custom-card/dist/evenkeel-boat-card.js.
+        # Rebuild from the current source so a stale tracked dist doesn't
+        # mask regressions.
+        working-directory: custom-card
+        run: |
+          npm ci
+          npm run build
+
       - name: Install simulator (editable)
         run: pip install -e ./simulator
 
       - name: Install test deps
         run: pip install -r tests/requirements.txt
 
-      - name: Run pytest-bdd
+      - name: Install Playwright Chromium
+        # The pytest-playwright tests in tests/test_card_e2e.py launch a
+        # real browser. ~150 MB; cached by setup-python's pip cache hit
+        # rate isn't great here so we cache the browser explicitly.
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run pytest (BDD + simulator integration + e2e card)
         working-directory: tests
         run: pytest -v --tb=short
 

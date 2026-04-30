@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+  Static test harness for the EvenKeel boat card under Playwright.
+
+  Loads the production bundle from custom-card/dist/, exposes a global
+  `__set_state(config, hass)` shortcut so individual tests can swap
+  state without re-loading the page, and dumps any thrown card error
+  into a #error div for the test to assert on.
+
+  This page deliberately does NOT depend on a Home Assistant runtime —
+  the card's `hass` setter accepts any object with a `states` map, and
+  the tests pass minimal mocks. Visual regression of the shadow DOM
+  exercises everything except the HA integration glue.
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>EvenKeel boat-card harness</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; padding: 24px; font-family: system-ui, sans-serif; }
+      #card-host { max-width: 720px; }
+      #error { color: #ef4444; font-family: monospace; white-space: pre-wrap; padding: 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="card-host"></div>
+    <div id="error" hidden></div>
+    <script type="module">
+      // Capture errors so tests can assert on them deterministically.
+      const errBox = document.getElementById('error');
+      window.addEventListener('error', (e) => {
+        errBox.hidden = false;
+        errBox.textContent += '\n' + (e.error?.stack || e.message);
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        errBox.hidden = false;
+        errBox.textContent += '\n' + (e.reason?.stack || e.reason);
+      });
+
+      // Load the same bundle HACS users install.
+      await import('../../custom-card/dist/evenkeel-boat-card.js');
+
+      // Convenience: `await window.__readyState()` resolves once the
+      // custom element finishes its initial render. Tests use this
+      // instead of arbitrary setTimeouts.
+      window.__readyState = async () => {
+        const card = document.querySelector('evenkeel-boat-card');
+        if (!card) return null;
+        await card.updateComplete;
+        return card.shadowRoot;
+      };
+
+      // Mount the card with a config + optional hass mock. Tests can
+      // swap state by re-calling this; setConfig + property change
+      // both trigger Lit re-render.
+      window.__mount = (config, hass) => {
+        const host = document.getElementById('card-host');
+        host.innerHTML = '';
+        const card = document.createElement('evenkeel-boat-card');
+        card.setConfig(config);
+        if (hass) card.hass = hass;
+        host.appendChild(card);
+        return card;
+      };
+
+      // Signal page ready.
+      document.body.dataset.ready = '1';
+    </script>
+  </body>
+</html>
