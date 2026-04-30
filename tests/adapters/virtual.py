@@ -31,6 +31,7 @@ from typing import Callable
 
 import aiomqtt
 import httpx
+from evenkeel_sim.discovery import build_discovery_payloads
 from evenkeel_sim.sensors import (
     AIS_TARGETS_TOPIC,
     LWT_TOPIC,
@@ -102,6 +103,10 @@ class VirtualAdapter:
                 headers={"Authorization": f"Bearer {self.ha_token}"},
                 timeout=10.0,
             )
+            # Publish HA MQTT discovery payloads so HA registers the
+            # canonical boat entities before any test starts setting
+            # values. Same payloads SimulatorPublisher would publish.
+            await self._publish_discovery()
         # Subscribe to everything under the boat tree so retained payloads
         # arrive immediately and live ones queue up for waiters.
         await self._client.subscribe("boat/#", qos=1)
@@ -155,6 +160,20 @@ class VirtualAdapter:
             raise
         except Exception:  # noqa: BLE001
             log.exception("MQTT listener crashed")
+
+    async def _publish_discovery(self) -> None:
+        """Publish HA MQTT-discovery payloads for every canonical entity.
+
+        Reuses the simulator's `build_discovery_payloads()` so the
+        boat entities HA materializes are byte-identical regardless
+        of whether the simulator or the harness is the producer. Lets
+        HA-using BDD scenarios assert on `binary_sensor.boat_*` and
+        `sensor.boat_*` entities the dashboard already references.
+        """
+        assert self._client is not None
+        for topic, payload in build_discovery_payloads():
+            await self._client.publish(topic, json.dumps(payload), retain=True, qos=1)
+        log.info("Published HA MQTT discovery for boat entities")
 
     # ─── Internal publish helper ─────────────────────────────────
     async def _publish_field(self, field: str, value) -> None:
