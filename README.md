@@ -23,31 +23,23 @@ Built around a single ESP32-S3 on the boat, a Home Assistant instance at home, a
 - ✅ **CI**: 5 GitHub Actions workflows — pytest (Python 3.10/3.11/3.12), custom-card build (Node 20/22), HA config check, integration tests against ephemeral mosquitto, Wokwi
 - ✅ **Local dev stack**: docker-compose runs mosquitto + HA + simulator end-to-end
 
-**Iteration 3 complete.** Layered tests + multi-package firmware:
+**Iterations 3 + 4 complete.** Six green CI workflows, full data-plane and HA-side observation, real-firmware Wokwi smoke:
 
-- ✅ **23 Gherkin telemetry scenarios** across bilge, battery, engine, leak, AIS targets, and anchor watch — all running through the BoatAdapter Protocol against a real Mosquitto in CI
-- ✅ **7 SimulatorPublisher integration tests** that spin up the actual publish loop in a background asyncio task and assert what lands on canonical topics
-- ✅ **6 Playwright e2e tests** against the real Chromium-rendered custom card, with a session-scoped http.server fixture serving the harness and the bundle rebuilt from source on every CI run
-- ✅ **Three-mode adapter harness structurally complete** — `VirtualAdapter` (full), `LiveIntegrationAdapter` and `HilAdapter` (skeletons; gated `NotImplementedError` until Phase 6 / Phase 4 commissioning). See [`tests/adapters/README.md`](tests/adapters/README.md).
-- ✅ **8 firmware packages** (base, network, health, bilge, temperature, power, engine, AIS) — full multi-package boat-mon.yaml building clean in CI on every push, including external_components for the AIS TCP stream-server. GPS + test_mode shipped as documented placeholders pending Phase 6 / 8.
-- ✅ **HACS metadata at repo root** + HACS validation workflow (PR / on-demand)
+- ✅ **23 Gherkin telemetry scenarios** across bilge, battery, engine, leak, AIS targets, and anchor watch — running through the BoatAdapter Protocol against a real Mosquitto in CI
+- ✅ **7 SimulatorPublisher integration tests** that spin up the actual publish loop in a background asyncio task and assert on canonical topics
+- ✅ **6 Playwright e2e tests** against the real Chromium-rendered custom card, with the bundle rebuilt from source on every CI run
+- ✅ **2 HA-bridged scenarios** — bilge wet → MQTT discovery → HA `binary_sensor.boat_bilge_water_detected` flips. Production HA Docker image, production `home-assistant/` config tree, MQTT integration pre-baked into `.storage` so HA subscribes on boot, onboarding bootstrap via `/api/onboarding/users` → `/auth/token`. The verification step asserts the scenarios actually ran (not silently skipped).
+- ✅ **Three-mode adapter harness structurally complete** — `VirtualAdapter` (full, with httpx-based HA REST), `LiveIntegrationAdapter` and `HilAdapter` (skeletons; gated `NotImplementedError` until Phase 6 / Phase 4 commissioning). See [`tests/adapters/README.md`](tests/adapters/README.md).
+- ✅ **8 firmware packages** (base, network, health, bilge, temperature, power, engine, AIS) — full multi-package `boat-mon.yaml` building clean in CI, including `external_components` for the AIS TCP stream-server. GPS + test_mode shipped as documented placeholders pending Phase 6 / 8.
+- ✅ **Wokwi smoke test** runs the slim `boat-mon-wokwi.yaml` build and reaches `BoatMon-1 booted` in the simulator within seconds (after fixing the ESP32-S3 logger's default `hardware_uart: USB_SERIAL_JTAG` routing to UART0)
+- ✅ **HACS metadata at repo root** + HACS validation workflow
 
-**Test surface in CI:** 36 tests across 4 layers (BDD, simulator integration, Playwright e2e, custom-card vitest) plus 73 vitest cases on the card unit tests = **109 tests gating master**.
+**Test surface gating master:** 109 tests across 5 layers — 23 BDD telemetry + 7 simulator integration + 2 HA-bridged + 6 Playwright e2e + 73 custom-card vitest. Plus 164 simulator pytest cases on `simulator-tests.yml`.
 
 **Next:**
-- HA REST observation in `VirtualAdapter` (httpx + onboarding-bootstrapped HA service container) → unblocks the full `bilge_alarm.feature` notification path with Pushover and Sonos
+- HA persistent_notification subscription via WebSocket — unblocks the full `bilge_alarm.feature` end-to-end through Pushover / Sonos
 - Live-mode HMAC handshake + on-boat test_mode injection — turns `--mode=live` from a skeleton into a working stimulus path against deployed firmware
-- Wokwi diagram improvements (pushbutton → bilge GPIO, DS18B20s on the 1-wire bus) so the simulation actually exercises the sensors
-
-## One-time external setup (not handled by code)
-
-Two pieces of project setup live outside the repo and need a human:
-
-1. **Add the `WOKWI_CLI_TOKEN` repo secret** so the Wokwi simulation
-   workflow can run. See [`firmware/README.md`](firmware/README.md#ci-wokwi-simulation).
-2. **Add at least one GitHub topic** to the repository (Settings → General → Topics).
-   HACS requires it for plugin validation. Suggested topics:
-   `home-assistant`, `hacs`, `lovelace`, `sailboat`, `marine`, `esphome`.
+- Wokwi diagram improvements (pushbutton → bilge GPIO, DS18B20s on the 1-wire bus, BME280 on I²C) so the simulation exercises real sensor read paths, not just boot logging
 
 ## Quickstart — develop without hardware
 
