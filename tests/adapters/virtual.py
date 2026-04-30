@@ -340,6 +340,37 @@ class VirtualAdapter:
             f"last seen: {last!r}"
         )
 
+    async def wait_for_entity_present(
+        self,
+        entity_id: str,
+        timeout: float = 15.0,
+        poll_interval: float = 0.5,
+    ) -> None:
+        """Poll HA until `entity_id` exists in the state machine.
+
+        Used for entities created at runtime (persistent_notification,
+        helpers spawned by automations, etc.) where we don't care
+        about the specific state value — just that the automation
+        fired and created the entity.
+        """
+        if not self._ha:
+            raise NotImplementedError(
+                "HA REST not configured (HA_URL + HA_TOKEN env vars unset)"
+            )
+        deadline = asyncio.get_running_loop().time() + timeout
+        while asyncio.get_running_loop().time() < deadline:
+            try:
+                r = await self._ha.get(f"/api/states/{entity_id}")
+                if r.status_code == 200:
+                    return
+            except httpx.HTTPError:
+                pass
+            await asyncio.sleep(poll_interval)
+        raise TimeoutError(
+            f"Timed out after {timeout}s waiting for entity {entity_id!r} "
+            f"to appear in HA state machine"
+        )
+
     async def wait_for_notification(  # noqa: ARG002
         self,
         predicate: Callable[[dict], bool],

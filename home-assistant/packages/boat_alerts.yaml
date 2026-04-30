@@ -1,0 +1,107 @@
+# EvenKeel — Critical-path alert automations
+#
+# Phase 6 — Pete + Kelly notification beats. The boat_health.yaml
+# package computes the ROLLUP states (ok/warning/critical) and
+# Captain's Glance headline. This package fans the highest-severity
+# events out to *user-visible* surfaces:
+#
+#   - persistent_notification (always; survives push/SMS being down)
+#   - notify.* services (Pushover for Pete, Pushover/email for Kelly)
+#   - tts.* on the home Sonos (so the kitchen speaker announces the
+#     critical issue when nobody's looking at a phone)
+#
+# CI exercises the persistent_notification path against a fresh HA
+# instance. Pushover + Sonos integrations are optional in production
+# and absent in CI; their service calls degrade gracefully via the
+# `service_template` + `if-action` patterns below.
+
+automation:
+
+  # ──────────────────── BILGE WATER DETECTED ────────────────────
+  - alias: EvenKeel · Bilge water — alert
+    id: evenkeel_alert_bilge_wet
+    description: >
+      Fires the moment bilge water is detected. Creates a persistent
+      notification, sends a Pushover (if configured), and announces
+      on Sonos (if configured). Cleared by the companion automation
+      when the bilge dries.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.boat_bilge_water_detected
+        to: 'on'
+    action:
+      - service: persistent_notification.create
+        data:
+          notification_id: bilge_water
+          title: "WATER DETECTED in bilge"
+          message: >
+            Bilge float switch reports water on the boat
+            ({{ now().strftime('%H:%M') }}).
+            Pete needs to check now.
+      # Pushover — only if the integration is configured. CI lacks it,
+      # production has it. The conditional makes both paths green.
+      - choose:
+          - conditions: "{{ 'pushover_pete' in integration_entities('notify') | map(attribute='data.name') | list }}"
+            sequence:
+              - service: notify.pushover_pete
+                data:
+                  title: "WATER DETECTED in bilge"
+                  message: "Bilge float switch reports water on the boat. Pete needs to check now."
+                  data:
+                    priority: 2
+                    sound: siren
+      # Sonos TTS — same pattern.
+      - choose:
+          - conditions: "{{ states('media_player.kitchen_sonos') not in ['unavailable', 'unknown'] }}"
+            sequence:
+              - service: tts.cloud_say
+                data:
+                  entity_id: media_player.kitchen_sonos
+                  message: "Bilge water detected on the boat."
+
+  - alias: EvenKeel · Bilge dry — clear alert
+    id: evenkeel_clear_bilge_wet
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.boat_bilge_water_detected
+        to: 'off'
+        for: '00:00:30'   # 30s of stable dry before clearing
+    action:
+      - service: persistent_notification.dismiss
+        data:
+          notification_id: bilge_water
+
+  # ────────────────── LOW BATTERY (Phase 4/6) ──────────────────
+  - alias: EvenKeel · House battery critical-low — alert
+    id: evenkeel_alert_battery_low
+    description: >
+      House SoC under 20% is the critical threshold below which fridge
+      compressors trip and electronics fault. Fires on cross-down only;
+      cleared by recovery above 30% (5% hysteresis).
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.boat_house_battery_soc
+        below: 20
+    action:
+      - service: persistent_notification.create
+        data:
+          notification_id: battery_low
+          title: "LOW BATTERY on the boat"
+          message: >
+            House battery state of charge dropped below 20%
+            (currently {{ states('sensor.boat_house_battery_soc') }}%).
+
+  - alias: EvenKeel · House battery recovered — clear
+    id: evenkeel_clear_battery_low
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.boat_house_battery_soc
+        above: 30
+    action:
+      - service: persistent_notification.dismiss
+        data:
+          notification_id: battery_low

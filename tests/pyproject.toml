@@ -41,4 +41,5 @@ markers = [
   "recovery: state-restoration / clear-after-alarm scenarios",
   "offline: scenarios that exercise broker disconnection or LWT",
   "rollup: HA template-sensor rollup assertions (Captain's Glance layer)",
+  "notification: HA persistent_notification / push / TTS surfaces",
 ]

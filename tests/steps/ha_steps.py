@@ -23,6 +23,29 @@ _HA_PARSER = parsers.parse(
 )
 
 
+_HA_PRESENT_PARSER = parsers.parse(
+    'within {timeout:d} seconds HA entity "{entity_id}" is present'
+)
+
+
+@given(_HA_PRESENT_PARSER)
+@when(_HA_PRESENT_PARSER)
+@then(_HA_PRESENT_PARSER)
+async def ha_entity_present(boat, timeout: int, entity_id: str) -> None:
+    """Assert an HA entity exists (regardless of its state value).
+
+    Useful for runtime-created entities — persistent_notification.*,
+    helpers spawned by automations — where the state value varies by
+    HA version but the entity's existence is the meaningful signal.
+    """
+    if not boat.has_ha:
+        pytest.skip(
+            "HA not configured (HA_URL + HA_TOKEN env vars unset); "
+            "skipping HA-entity assertion"
+        )
+    await boat.wait_for_entity_present(entity_id, timeout=float(timeout))
+
+
 @given(_HA_PARSER)
 @when(_HA_PARSER)
 @then(_HA_PARSER)

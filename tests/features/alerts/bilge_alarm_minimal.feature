@@ -35,3 +35,9 @@ Feature: Bilge water flips the HA binary_sensor through MQTT discovery
     When the bilge float switch reports dry
     Then within 30 seconds HA entity "binary_sensor.boat_bilge_water_detected" equals "off"
     And within 30 seconds HA entity "sensor.boat_bilge_status" equals "ok"
+
+  @phase6 @alerts @critical @notification
+  Scenario: Bilge wet fires the boat_alerts automation that creates a persistent_notification
+    When the bilge float switch reports water
+    Then within 30 seconds HA entity "binary_sensor.boat_bilge_water_detected" equals "on"
+    And within 15 seconds HA entity "persistent_notification.bilge_water" is present
