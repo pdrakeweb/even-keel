@@ -26,6 +26,9 @@ _HA_PARSER = parsers.parse(
 _HA_PRESENT_PARSER = parsers.parse(
     'within {timeout:d} seconds HA entity "{entity_id}" is present'
 )
+_HA_ABSENT_PARSER = parsers.parse(
+    'within {timeout:d} seconds HA entity "{entity_id}" is absent'
+)
 
 
 @given(_HA_PRESENT_PARSER)
@@ -44,6 +47,23 @@ async def ha_entity_present(boat, timeout: int, entity_id: str) -> None:
             "skipping HA-entity assertion"
         )
     await boat.wait_for_entity_present(entity_id, timeout=float(timeout))
+
+
+@given(_HA_ABSENT_PARSER)
+@when(_HA_ABSENT_PARSER)
+@then(_HA_ABSENT_PARSER)
+async def ha_entity_absent(boat, timeout: int, entity_id: str) -> None:
+    """Assert an HA entity does NOT exist (returns 404 from /api/states).
+
+    The dismissal counterpart to ha_entity_present. Used to verify
+    persistent_notification.dismiss / runtime-created entity removal.
+    """
+    if not boat.has_ha:
+        pytest.skip(
+            "HA not configured (HA_URL + HA_TOKEN env vars unset); "
+            "skipping HA-entity assertion"
+        )
+    await boat.wait_for_entity_absent(entity_id, timeout=float(timeout))
 
 
 @given(_HA_PARSER)
