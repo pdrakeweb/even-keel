@@ -3,6 +3,8 @@
 [![Simulator tests](https://github.com/pdrakeweb/even-keel/actions/workflows/simulator-tests.yml/badge.svg)](https://github.com/pdrakeweb/even-keel/actions/workflows/simulator-tests.yml)
 [![Custom card](https://github.com/pdrakeweb/even-keel/actions/workflows/custom-card.yml/badge.svg)](https://github.com/pdrakeweb/even-keel/actions/workflows/custom-card.yml)
 [![HA config](https://github.com/pdrakeweb/even-keel/actions/workflows/ha-config.yml/badge.svg)](https://github.com/pdrakeweb/even-keel/actions/workflows/ha-config.yml)
+[![Integration tests](https://github.com/pdrakeweb/even-keel/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/pdrakeweb/even-keel/actions/workflows/integration-tests.yml)
+[![Wokwi](https://github.com/pdrakeweb/even-keel/actions/workflows/wokwi.yml/badge.svg)](https://github.com/pdrakeweb/even-keel/actions/workflows/wokwi.yml)
 
 A DIY sailboat monitoring, AIS, and alerting system for a Hunter 41DS on Lake Erie.
 
@@ -10,18 +12,22 @@ Built around a single ESP32-S3 on the boat, a Home Assistant instance at home, a
 
 ## Status
 
-**Iteration 1 complete.** Foundations in place:
+**Iterations 1 + 2 complete.** Boots end-to-end in simulation:
 
 - ✅ Boat telemetry **simulator** (Python) with 9 scenarios — covered by 164 pytest tests
 - ✅ **Home Assistant** configuration: 3 dashboards, 9 rollup template sensors, 2 themes (Modern Minimal + Marine Classic), Captain's Glance primary-alert engine
-- ✅ **Custom Lovelace card** (`evenkeel-boat-card`) — HACS-installable, Lit + TypeScript + Vite, top-down sailboat diagram with severity overlays + animated power flow + tap-to-drill navigation, 73 unit tests
-- ✅ **CI**: GitHub Actions for pytest (Python 3.10/3.11/3.12), card build (Node 20/22), HA config check, Wokwi firmware skeleton
+- ✅ **Custom Lovelace card** (`evenkeel-boat-card`) — HACS-installable, Lit + TypeScript + Vite, top-down Hunter 41DS sailboat silhouette with severity overlays + animated power flow + tap-to-drill navigation, helm/mast/nav-light detail layer, **73 unit tests**
+- ✅ **ESP32-S3 firmware** — minimal ESPHome boat-mon.yaml that boots, prints "BoatMon-1 booted", connects WiFi/MQTT, publishes RSSI/uptime/SoC-temp on canonical `boat/hunter41/health/*` topics
+- ✅ **Wokwi smoke test** — workflow builds the firmware and runs it under a headless ESP32-S3 (token setup: see [`firmware/README.md`](firmware/README.md#ci-wokwi-simulation))
+- ✅ **pytest-bdd test harness** — Gherkin features driven through a BoatAdapter Protocol with virtual / HIL / live modes; first telemetry feature green in CI
+- ✅ **CI**: 5 GitHub Actions workflows — pytest (Python 3.10/3.11/3.12), custom-card build (Node 20/22), HA config check, integration tests against ephemeral mosquitto, Wokwi
 - ✅ **Local dev stack**: docker-compose runs mosquitto + HA + simulator end-to-end
 
-**Iteration 2 in flight:**
-- ESP32-S3 ESPHome firmware (`firmware/boat-mon.yaml`) + Wokwi simulator config
-- First Gherkin AIS-TCP-bridge scenario passing in CI under virtual mode
-- Custom card SVG enhancements (proper Hunter 41DS profile, click→drill)
+**Iteration 3 — next on deck:**
+- AIS-TCP-bridge scenario (firmware UART → MQTT → HA)
+- Bilge alarm full path (MQTT → HA → Pushover/Sonos), HA REST observation in adapter
+- Battery monitoring scenarios (Phase 4 INA226 + Victron BLE inject)
+- Playwright dashboard regression suite
 
 ## Quickstart — develop without hardware
 
@@ -87,7 +93,7 @@ relay/              optional aisstream.io forwarder
 docs/               runbooks, photos, install guides — start at ui-dev-quickstart.md
 tools/              one-off scripts (MQTT replay, AIS capture, cert rotation)
 docker-compose.yml  local dev stack (mosquitto + HA + simulator)
-.github/workflows/  CI: simulator pytest, custom-card build, HA config check, Wokwi
+.github/workflows/  CI: simulator pytest, custom-card build, HA config check, integration-tests, Wokwi
 .env.example        template for WOKWI_CLI_TOKEN, HA_TOKEN, Pushover keys
 ```
 

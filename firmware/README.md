@@ -38,3 +38,23 @@ esphome compile boat-mon.yaml -DENABLE_TEST_MODE   # test-mode build
 ## OTA
 
 Only reachable from boat LAN or via WireGuard tunnel from home. Password-protected and encrypted.
+
+## CI: Wokwi simulation
+
+The `Wokwi firmware simulation` workflow builds this firmware and
+boots it under a headless ESP32-S3 in Wokwi
+(`.github/workflows/wokwi.yml`). Wokwi requires a personal CI token,
+which the workflow reads from a repository secret.
+
+**One-time setup:** add the token at
+`Settings → Secrets and variables → Actions → New repository secret`:
+
+| Name              | Value                                            |
+|-------------------|--------------------------------------------------|
+| `WOKWI_CLI_TOKEN` | from <https://wokwi.com/dashboard/ci> (free tier covers OSS / public-repo CI) |
+
+Until the secret is set, the simulation step short-circuits with a
+clear error and the workflow fails — by design, so a missing secret
+isn't silently masked. The local `.env` file (gitignored) is also a
+convenient place to keep the token for `wokwi-cli` runs from your
+own machine.
