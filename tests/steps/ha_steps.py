@@ -12,14 +12,20 @@ without HA stays green.
 from __future__ import annotations
 
 import pytest
-from pytest_bdd import parsers, then
+from pytest_bdd import given, parsers, then, when
 
-
-@then(
-    parsers.parse(
-        'within {timeout:d} seconds HA entity "{entity_id}" equals "{expected}"'
-    )
+# `within N seconds HA entity "X" equals "Y"` shows up in features as
+# either a Then (the canonical assertion form), an And chained off a
+# Given (mid-setup verification), or a When chained off a Then. Register
+# under all three keywords — pytest-bdd 8 binds keywords strictly.
+_HA_PARSER = parsers.parse(
+    'within {timeout:d} seconds HA entity "{entity_id}" equals "{expected}"'
 )
+
+
+@given(_HA_PARSER)
+@when(_HA_PARSER)
+@then(_HA_PARSER)
 async def ha_entity_equals(boat, timeout: int, entity_id: str, expected: str) -> None:
     if not boat.has_ha:
         pytest.skip(
