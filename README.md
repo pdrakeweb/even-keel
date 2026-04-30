@@ -23,15 +23,21 @@ Built around a single ESP32-S3 on the boat, a Home Assistant instance at home, a
 - ✅ **CI**: 5 GitHub Actions workflows — pytest (Python 3.10/3.11/3.12), custom-card build (Node 20/22), HA config check, integration tests against ephemeral mosquitto, Wokwi
 - ✅ **Local dev stack**: docker-compose runs mosquitto + HA + simulator end-to-end
 
-**Iteration 3 in flight:**
-- ✅ Battery, engine, leak, AIS-targets, anchor-watch BDD scenarios — **23 Gherkin scenarios + 7 simulator-publisher integration tests green in CI**
-- ✅ Firmware packages: bilge / temperature / power (1.13 MB factory binary builds clean)
-- ✅ HACS metadata at repo root + HACS-validation workflow
+**Iteration 3 complete.** Layered tests + multi-package firmware:
+
+- ✅ **23 Gherkin telemetry scenarios** across bilge, battery, engine, leak, AIS targets, and anchor watch — all running through the BoatAdapter Protocol against a real Mosquitto in CI
+- ✅ **7 SimulatorPublisher integration tests** that spin up the actual publish loop in a background asyncio task and assert what lands on canonical topics
+- ✅ **6 Playwright e2e tests** against the real Chromium-rendered custom card, with a session-scoped http.server fixture serving the harness and the bundle rebuilt from source on every CI run
+- ✅ **Three-mode adapter harness structurally complete** — `VirtualAdapter` (full), `LiveIntegrationAdapter` and `HilAdapter` (skeletons; gated `NotImplementedError` until Phase 6 / Phase 4 commissioning). See [`tests/adapters/README.md`](tests/adapters/README.md).
+- ✅ **8 firmware packages** (base, network, health, bilge, temperature, power, engine, AIS) — full multi-package boat-mon.yaml building clean in CI on every push, including external_components for the AIS TCP stream-server. GPS + test_mode shipped as documented placeholders pending Phase 6 / 8.
+- ✅ **HACS metadata at repo root** + HACS validation workflow (PR / on-demand)
+
+**Test surface in CI:** 36 tests across 4 layers (BDD, simulator integration, Playwright e2e, custom-card vitest) plus 73 vitest cases on the card unit tests = **109 tests gating master**.
 
 **Next:**
-- AIS UART firmware package + Wokwi UART source
-- HA REST observation in `VirtualAdapter` (unblocks the full `bilge_alarm.feature` notification path)
-- Playwright dashboard regression suite
+- HA REST observation in `VirtualAdapter` (httpx + onboarding-bootstrapped HA service container) → unblocks the full `bilge_alarm.feature` notification path with Pushover and Sonos
+- Live-mode HMAC handshake + on-boat test_mode injection — turns `--mode=live` from a skeleton into a working stimulus path against deployed firmware
+- Wokwi diagram improvements (pushbutton → bilge GPIO, DS18B20s on the 1-wire bus) so the simulation actually exercises the sensors
 
 ## One-time external setup (not handled by code)
 
