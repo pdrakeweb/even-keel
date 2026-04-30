@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "evenkeel-stack",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["tools/preview-redirector.py"],
+      "autoPort": true
+    }
+  ]
+}

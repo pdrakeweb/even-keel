@@ -1,14 +1,59 @@
-secrets.yaml
-.esphome/
-.pio/
-__pycache__/
-*.pyc
-.venv/
+# ─── Secrets & local state ─────────────────────────────────────────
 .env
-tests/.playwright/
-tests/snapshots/**/*-actual.png
-tests/snapshots/**/*-diff.png
+secrets.yaml
 home-assistant/secrets.yaml
 home-assistant/known_devices.yaml
 home-assistant/.storage/
+home-assistant/.HA_VERSION
+home-assistant/.cloud/
+home-assistant/home-assistant.log*
+home-assistant/home-assistant_v2.db*
+home-assistant/tts/
+home-assistant/www/
+home-assistant/blueprints/automation/homeassistant/
+home-assistant/blueprints/script/homeassistant/
+home-assistant/blueprints/template/homeassistant/
+
+# ─── Python ────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.tox/
+htmlcov/
+.coverage
+.coverage.*
+
+# ─── Node / custom-card build ──────────────────────────────────────
+node_modules/
+custom-card/dist/*.map
+custom-card/.vite/
+*.tsbuildinfo
+
+# ─── ESPHome / firmware ────────────────────────────────────────────
+.esphome/
+firmware/.esphome/
+firmware/secrets.yaml
+.pio/
+
+# ─── Test artifacts ────────────────────────────────────────────────
+tests/.playwright/
+tests/snapshots/**/*-actual.png
+tests/snapshots/**/*-diff.png
+.playwright-cache/
+
+# ─── IDE / OS ──────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+*.swp
+.vscode/launch.json
+.idea/
+
+# ─── Claude harness ────────────────────────────────────────────────
+# .claude/launch.json is committed — it documents the dev preview server.
+.claude/cache/
+.claude/local-state/
+.claude/settings.local.json
