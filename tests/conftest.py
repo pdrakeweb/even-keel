@@ -27,6 +27,8 @@ if sys.platform == "win32":
 from steps.battery_steps import *  # noqa: F401, F403
 from steps.bilge_steps import *  # noqa: F401, F403
 from steps.common_steps import *  # noqa: F401, F403
+from steps.engine_steps import *  # noqa: F401, F403
+from steps.leak_steps import *  # noqa: F401, F403
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

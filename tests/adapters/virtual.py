@@ -161,6 +161,33 @@ class VirtualAdapter:
             raise ValueError(f"unknown temperature zone: {zone!r}")
         await self._publish_field(zone_field, celsius)
 
+    async def set_engine_running(self, running: bool) -> None:
+        await self._publish_field("engine_running", running)
+
+    async def set_engine_rpm(self, rpm: int) -> None:
+        await self._publish_field("engine_rpm", rpm)
+
+    async def set_engine_coolant(self, celsius: float) -> None:
+        await self._publish_field("engine_coolant_c", celsius)
+
+    async def set_engine_oil_pressure(self, kpa: float) -> None:
+        await self._publish_field("engine_oil_pressure_kpa", kpa)
+
+    async def set_leak(self, zone: str, present: bool) -> None:
+        zone_field = {
+            "head": "leak_head",
+            "galley": "leak_galley",
+            "engine": "leak_engine",
+            "engine_bay": "leak_engine",
+        }.get(zone)
+        if zone_field is None:
+            raise ValueError(f"unknown leak zone: {zone!r}")
+        await self._publish_field(zone_field, present)
+
+    async def set_anchor(self, armed: bool, distance_m: float = 0.0) -> None:
+        await self._publish_field("anchor_armed", armed)
+        await self._publish_field("anchor_distance_m", distance_m)
+
     async def inject_victron(self, soc: float, current: float, ttg_min: int) -> None:
         await self._publish_field("house_soc", soc)
         await self._publish_field("house_a", current)
