@@ -11,12 +11,21 @@ from pytest_bdd import given, parsers, when
 
 
 # ─── House battery ──────────────────────────────────────────────
-@when(parsers.parse("the house battery reports {pct:g}% state of charge"))
+# Registered under @given/@when so scenarios can chain "Given the
+# house battery reports X% state of charge" (mid-setup) AND "When..."
+# (state-change action). pytest-bdd 8 binds keyword strictly.
+_SOC_PARSER = parsers.parse("the house battery reports {pct:g}% state of charge")
+_VOLTS_PARSER = parsers.parse("the house battery reports {volts:g} volts")
+
+
+@given(_SOC_PARSER)
+@when(_SOC_PARSER)
 async def house_reports_soc(boat, pct: float) -> None:
     await boat.set_house_soc(pct)
 
 
-@when(parsers.parse("the house battery reports {volts:g} volts"))
+@given(_VOLTS_PARSER)
+@when(_VOLTS_PARSER)
 async def house_reports_volts(boat, volts: float) -> None:
     await boat.set_house_voltage(volts)
 
