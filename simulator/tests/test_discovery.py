@@ -19,7 +19,7 @@ from evenkeel_sim.sensors import TOPIC_MAP
 
 
 REQUIRED_PAYLOAD_KEYS = {
-    "name", "unique_id", "object_id", "state_topic", "device",
+    "name", "unique_id", "state_topic", "device",
     "availability_topic", "payload_available", "payload_not_available",
 }
 

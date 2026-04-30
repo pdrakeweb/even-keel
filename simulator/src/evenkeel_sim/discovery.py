@@ -107,10 +107,16 @@ def build_discovery_payloads() -> Iterable[tuple[str, dict]]:
         component = meta.get("component", "sensor")
         unique_id = f"evenkeel_boatmon_{fname}"
         config_topic = f"homeassistant/{component}/{unique_id}/config"
+        # NB: deliberately NO `object_id`. With object_id set, HA uses
+        # it verbatim as the entity_id slug (binary_sensor.<object_id>).
+        # Without it, HA derives entity_id from device.name + name,
+        # which gives binary_sensor.boat_bilge_water_detected — which is
+        # what home-assistant/packages/boat_health.yaml templates
+        # reference. unique_id stays stable so Pete's existing HA
+        # registry isn't disturbed.
         payload = {
             "name": meta.get("name", fname),
             "unique_id": unique_id,
-            "object_id": unique_id,
             "state_topic": state_topic,
             "device": DEVICE,
             "availability_topic": "boat/hunter41/status/online",
@@ -130,11 +136,13 @@ def build_discovery_payloads() -> Iterable[tuple[str, dict]]:
                 payload[payload_key] = meta[opt_key]
         yield config_topic, payload
 
-    # Boat tracker (device_tracker entity for HA map card)
+    # Boat tracker (device_tracker entity for HA map card).
+    # No object_id here either — HA derives device_tracker.boat_boat
+    # which we leave alone; renaming it forces breaking changes in
+    # consumers that already reference the existing entity_id.
     yield "homeassistant/device_tracker/evenkeel_boat/config", {
         "name": "Boat",
         "unique_id": "evenkeel_boat_tracker",
-        "object_id": "boat_tracker",
         "state_topic": "boat/hunter41/tracker/state",
         "json_attributes_topic": "boat/hunter41/tracker/attrs",
         "source_type": "gps",
