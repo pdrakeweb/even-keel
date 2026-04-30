@@ -40,9 +40,20 @@ async def publisher_task() -> AsyncIterator[asyncio.Task[None]]:
     """Run a SimulatorPublisher in the background for one test.
 
     Uses a deterministic Random seed so scenario output is repeatable.
+    Clears retained state on the control topics first so a prior test's
+    "off" or HA's `boat_controls.yaml` automation publishing the
+    initial input_boolean.use_simulator state doesn't immediately flip
+    `running` to False before the test gets to assert.
+
     The task is cancelled in teardown; aiomqtt closes its socket on
     `__aexit__` so the broker sees a graceful disconnect.
     """
+    # Clear retained control-topic state. Empty payload + retain=True
+    # is the MQTT-spec way to delete a retained message.
+    async with aiomqtt.Client(BROKER, PORT, identifier="evenkeel-int-purge") as c:
+        await c.publish(CTRL_RUN_TOPIC, b"", retain=True, qos=1)
+        await c.publish(CTRL_SCENARIO_TOPIC, b"", retain=True, qos=1)
+
     pub = SimulatorPublisher(
         broker=BROKER,
         port=PORT,
