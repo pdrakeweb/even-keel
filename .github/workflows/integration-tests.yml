@@ -232,15 +232,16 @@ jobs:
           echo "==============================="
 
       - name: Run pytest (BDD + simulator integration, no HA)
-        # Excludes both the Playwright suite and the HA-bridged
-        # bilge_alarm_minimal scenarios so a real BDD/simulator
-        # regression isn't tangled up with HA setup wobbles.
-        # Tee output to a file so failures are visible in the failure-
-        # summary step below even when the workflow log API is opaque.
+        # Excludes the Playwright suite and the HA-bridged alarm
+        # scenarios. Each ignored test file is a different gate
+        # protecting against a different class of regression masking
+        # itself behind unrelated infrastructure wobbles.
         working-directory: tests
         run: |
           set -o pipefail
-          pytest --ignore=test_card_e2e.py --ignore=test_bilge_alarm_minimal.py \
+          pytest --ignore=test_card_e2e.py \
+                 --ignore=test_bilge_alarm_minimal.py \
+                 --ignore=test_battery_alarm.py \
             -v --tb=long 2>&1 | tee /tmp/pytest-bdd.log
           exit ${PIPESTATUS[0]}
 
@@ -262,15 +263,17 @@ jobs:
           done
 
       - name: Run pytest (HA-bridged scenarios)
-        # Iteration 4B: bilge MQTT → HA binary_sensor flips. Isolated
-        # so failures here are visible without hiding BDD/sim regressions.
-        # `-rs` surfaces skip reasons so a silently-skipped test is
-        # visible in the run summary.
+        # Iteration 4B/C: bilge + battery alarm flows through the full
+        # MQTT → HA discovery → template-sensor → automation →
+        # persistent_notification stack. Isolated so failures here are
+        # visible without hiding BDD/sim regressions. `-rs` surfaces
+        # skip reasons so a silently-skipped test is loud.
         id: ha-pytest
         working-directory: tests
         run: |
           set -o pipefail
-          pytest test_bilge_alarm_minimal.py -v --tb=long -rs 2>&1 | tee /tmp/pytest-ha.log
+          pytest test_bilge_alarm_minimal.py test_battery_alarm.py \
+            -v --tb=long -rs 2>&1 | tee /tmp/pytest-ha.log
           exit ${PIPESTATUS[0]}
 
       - name: Echo HA-bridged failure tail as annotations
