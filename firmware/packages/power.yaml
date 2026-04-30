@@ -1,0 +1,139 @@
+# Power monitoring (Phases 4 + 7).
+#
+# Two layers:
+#   - Shore + generator presence — opto-isolated 120 V AC to GPIO. Fast
+#     and cheap; just "is AC present?". Voltage and current are the
+#     interesting numbers but require a real INA226 or similar.
+#   - I²C INA226 on the house bank — voltage, current (signed), and
+#     power. The bank shunt sits in the negative lead near the battery.
+#
+# Voltage divider on ADC1_CH0 (GPIO1 pre-bilge — moved to GPIO4 here)
+# reads the start-battery voltage through a 100 kΩ / 22 kΩ ladder so
+# the 12-volt nominal lands inside ESP32-S3's 0–3.1 V ADC window.
+#
+# A real BME280 on the same I²C bus picks up cabin atmospherics —
+# barometric pressure (good for weather drop alerts) and humidity.
+
+i2c:
+  - id: bus_a
+    sda: GPIO8
+    scl: GPIO9
+    scan: true
+    frequency: 100kHz
+
+# ─── House battery via INA226 ─────────────────────────────────────
+sensor:
+  - platform: ina226
+    address: 0x40
+    shunt_resistance: 0.001 ohm
+    max_current: 200 A
+    update_interval: 5s
+    current:
+      name: "House battery current"
+      id: house_a
+      state_topic: ${device_topic}/power/battery/house/a
+      accuracy_decimals: 2
+    bus_voltage:
+      name: "House battery voltage"
+      id: house_v
+      state_topic: ${device_topic}/power/battery/house/v
+      accuracy_decimals: 2
+    power:
+      name: "House battery power"
+      state_topic: ${device_topic}/power/battery/house/w
+      accuracy_decimals: 1
+
+  # ─── Start battery via voltage divider ───────────────────────
+  - platform: adc
+    pin: GPIO4
+    id: start_v_raw
+    name: "Start battery voltage"
+    update_interval: 30s
+    attenuation: 12db
+    state_topic: ${device_topic}/power/battery/start/v
+    accuracy_decimals: 2
+    filters:
+      # 100k / 22k divider → 12 V nominal becomes 2.16 V at ADC pin.
+      # Multiply back to bus volts. Tweak the multiplier per your
+      # actual resistor tolerances during commissioning.
+      - multiply: 5.545
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+
+  # ─── Cabin atmospherics ──────────────────────────────────────
+  - platform: bme280_i2c
+    address: 0x76
+    update_interval: 60s
+    temperature:
+      name: "Cabin BME280 temperature"
+      state_topic: ${device_topic}/cabin/bme_temp
+      accuracy_decimals: 1
+    pressure:
+      name: "Cabin pressure"
+      state_topic: ${device_topic}/cabin/pressure
+      accuracy_decimals: 1
+    humidity:
+      name: "Cabin humidity"
+      state_topic: ${device_topic}/cabin/humidity
+      accuracy_decimals: 0
+
+# ─── Shore + generator opto-isolated presence ────────────────────
+# Same explicit-mqtt-publish pattern as bilge.yaml so the bytes on
+# the wire match the simulator's "1" / "0" contract.
+binary_sensor:
+  - platform: gpio
+    id: shore_present
+    name: "Shore power"
+    pin:
+      number: GPIO11
+      mode:
+        input: true
+        pullup: true
+      inverted: true   # opto pulls low when AC present
+    filters:
+      # Shore power state is occasionally "noisy" during reconnect
+      # transitions; require 2 s of stable state before publishing.
+      - delayed_on: 2s
+      - delayed_off: 2s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: ${device_topic}/power/shore
+            payload: "1"
+            retain: true
+            qos: 1
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: ${device_topic}/power/shore
+            payload: "0"
+            retain: true
+            qos: 1
+
+  - platform: gpio
+    id: generator_present
+    name: "Generator running"
+    pin:
+      number: GPIO12
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    filters:
+      - delayed_on: 5s
+      - delayed_off: 5s
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: ${device_topic}/power/generator
+            payload: "1"
+            retain: true
+            qos: 1
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: ${device_topic}/power/generator
+            payload: "0"
+            retain: true
+            qos: 1

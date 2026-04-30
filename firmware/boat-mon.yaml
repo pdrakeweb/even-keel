@@ -30,6 +30,9 @@ esp32:
     type: esp-idf
 
 packages:
-  base:    !include packages/base.yaml
-  network: !include packages/network.yaml
-  health:  !include packages/health.yaml
+  base:        !include packages/base.yaml
+  network:     !include packages/network.yaml
+  health:      !include packages/health.yaml
+  bilge:       !include packages/bilge.yaml
+  temperature: !include packages/temperature.yaml
+  power:       !include packages/power.yaml

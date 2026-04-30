@@ -1,0 +1,69 @@
+# Multi-zone temperature monitoring (Phase 5).
+#
+# DS18B20 1-Wire sensors on a single bus pin (GPIO10), with a 4.7 kΩ
+# pullup resistor near the ESP32. ESPHome's modern `one_wire:` platform
+# supersedes the legacy `dallas:` component.
+#
+# Zone addresses are placeholders here — real sensors get unique 64-bit
+# ROM IDs that you discover by running the firmware once with the
+# debug logger and reading the bus scan output. Once known, the
+# addresses are committed here so swapping a sensor (different ROM)
+# is a deliberate config change, not silent breakage.
+#
+# Zones map to the simulator's TOPIC_MAP fields one-to-one so the
+# Captain's Glance rollups don't care which producer is publishing.
+
+one_wire:
+  - platform: gpio
+    pin: GPIO10
+
+sensor:
+  # Cabin (saloon) temperature — primary HVAC reading.
+  - platform: dallas_temp
+    address: 0x010000000000ee01
+    name: "Cabin temperature"
+    state_topic: ${device_topic}/temp/cabin
+    update_interval: 30s
+    accuracy_decimals: 1
+    filters:
+      - filter_out: NaN
+
+  # V-berth — forward sleeping zone.
+  - platform: dallas_temp
+    address: 0x010000000000ee02
+    name: "V-berth temperature"
+    state_topic: ${device_topic}/temp/v_berth
+    update_interval: 30s
+    accuracy_decimals: 1
+    filters:
+      - filter_out: NaN
+
+  # Engine bay — runs hot when underway, watch for stuck-on-blower.
+  - platform: dallas_temp
+    address: 0x010000000000ee03
+    name: "Engine compartment temperature"
+    state_topic: ${device_topic}/temp/engine_compartment
+    update_interval: 30s
+    accuracy_decimals: 1
+    filters:
+      - filter_out: NaN
+
+  # Refrigerator — warms = food spoils. Tighter update cadence.
+  - platform: dallas_temp
+    address: 0x010000000000ee04
+    name: "Refrigerator temperature"
+    state_topic: ${device_topic}/temp/refrigerator
+    update_interval: 15s
+    accuracy_decimals: 1
+    filters:
+      - filter_out: NaN
+
+  # Lazarette — bilge-adjacent stern locker. Useful for moisture cross-ref.
+  - platform: dallas_temp
+    address: 0x010000000000ee05
+    name: "Lazarette temperature"
+    state_topic: ${device_topic}/temp/lazarette
+    update_interval: 60s
+    accuracy_decimals: 1
+    filters:
+      - filter_out: NaN

@@ -1,0 +1,63 @@
+# Bilge water detection (Phase 6 — critical safety).
+#
+# Single Rule-A-Matic Plus float switch on a GPIO with internal pullup.
+# When water rises high enough to lift the float, the switch closes to
+# ground and the binary_sensor reports "wet".
+#
+# Tier 0 escalation: a panel-mounted piezo buzzer on a separate GPIO
+# fires immediately when wet=true, regardless of WiFi/MQTT/HA state.
+# This is the watertight path — even if the boat is offline and HA
+# is down, the boat itself screams.
+#
+# 250 ms debounce filter swallows brief float-switch chatter (waves
+# rocking the float) so a single splash doesn't fire the alarm.
+#
+# Topic contract: simulator publishes "1" / "0" to
+# boat/hunter41/bilge/water_detected (NOT the ESPHome default "ON"/"OFF"),
+# so we use mqtt.publish with explicit payloads to match byte-for-byte.
+
+binary_sensor:
+  - platform: gpio
+    id: bilge_float
+    name: "Bilge water"
+    pin:
+      number: GPIO1
+      mode:
+        input: true
+        pulldown: false
+        pullup: true
+      inverted: true   # switch closes to GND on water; we want true=wet
+    device_class: moisture
+    filters:
+      - delayed_on: 250ms
+      - delayed_off: 1s
+    on_press:
+      then:
+        # Tier 0: hardware alarm independent of network state.
+        - switch.turn_on: bilge_buzzer
+        # Publish "1" with retain so HA / dashboards persist the alarm
+        # across reconnects.
+        - mqtt.publish:
+            topic: ${device_topic}/bilge/water_detected
+            payload: "1"
+            retain: true
+            qos: 1
+    on_release:
+      then:
+        - switch.turn_off: bilge_buzzer
+        - mqtt.publish:
+            topic: ${device_topic}/bilge/water_detected
+            payload: "0"
+            retain: true
+            qos: 1
+
+switch:
+  - platform: gpio
+    id: bilge_buzzer
+    name: "Bilge buzzer"
+    pin:
+      number: GPIO2
+      mode:
+        output: true
+    restore_mode: ALWAYS_OFF
+    icon: mdi:bullhorn-variant
