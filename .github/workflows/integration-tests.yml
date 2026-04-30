@@ -89,18 +89,17 @@ jobs:
         run: python -m playwright install --with-deps chromium
 
       - name: Run pytest (BDD + simulator integration)
-        # Must pass. Excludes the Playwright suite so a flaky e2e
-        # doesn't mask a real BDD/simulator regression.
+        # Excludes the Playwright suite so a real BDD/simulator
+        # regression isn't tangled up with a browser flake. Both
+        # steps gate the workflow now that the harness is stable.
         working-directory: tests
         run: pytest --ignore=test_card_e2e.py -v --tb=short
 
       - name: Run pytest (Playwright e2e)
-        # Informational for now — we're still stabilising the harness
-        # in CI. Failures here don't fail the workflow but are visible
-        # in the run summary so regressions get noticed.
+        # Real-browser regression suite for the boat card, against
+        # the bundle rebuilt in the previous step.
         working-directory: tests
-        continue-on-error: true
-        run: pytest test_card_e2e.py -v --tb=long
+        run: pytest test_card_e2e.py -v --tb=short
 
       - name: Mosquitto logs (on failure)
         if: failure()
