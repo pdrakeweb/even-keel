@@ -23,11 +23,25 @@ Built around a single ESP32-S3 on the boat, a Home Assistant instance at home, a
 - ✅ **CI**: 5 GitHub Actions workflows — pytest (Python 3.10/3.11/3.12), custom-card build (Node 20/22), HA config check, integration tests against ephemeral mosquitto, Wokwi
 - ✅ **Local dev stack**: docker-compose runs mosquitto + HA + simulator end-to-end
 
-**Iteration 3 — next on deck:**
-- AIS-TCP-bridge scenario (firmware UART → MQTT → HA)
-- Bilge alarm full path (MQTT → HA → Pushover/Sonos), HA REST observation in adapter
-- Battery monitoring scenarios (Phase 4 INA226 + Victron BLE inject)
+**Iteration 3 in flight:**
+- ✅ Battery, engine, leak, AIS-targets, anchor-watch BDD scenarios — **23 Gherkin scenarios + 7 simulator-publisher integration tests green in CI**
+- ✅ Firmware packages: bilge / temperature / power (1.13 MB factory binary builds clean)
+- ✅ HACS metadata at repo root + HACS-validation workflow
+
+**Next:**
+- AIS UART firmware package + Wokwi UART source
+- HA REST observation in `VirtualAdapter` (unblocks the full `bilge_alarm.feature` notification path)
 - Playwright dashboard regression suite
+
+## One-time external setup (not handled by code)
+
+Two pieces of project setup live outside the repo and need a human:
+
+1. **Add the `WOKWI_CLI_TOKEN` repo secret** so the Wokwi simulation
+   workflow can run. See [`firmware/README.md`](firmware/README.md#ci-wokwi-simulation).
+2. **Add at least one GitHub topic** to the repository (Settings → General → Topics).
+   HACS requires it for plugin validation. Suggested topics:
+   `home-assistant`, `hacs`, `lovelace`, `sailboat`, `marine`, `esphome`.
 
 ## Quickstart — develop without hardware
 
