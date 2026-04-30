@@ -1,0 +1,109 @@
+# Engine telemetry (Phase 5).
+#
+# Hunter 41DS comes with a Yanmar 3JH4E (~40 hp). It has:
+#   - An oil-pressure switch that closes when oil pressure is present.
+#   - An alternator with a "W" terminal — square-wave proportional to RPM.
+#
+# We don't decode J1939 / NMEA 2000 here (Phase 6+ feature). Instead:
+#   - Engine running = oil_pressure_switch ∧ ¬cranking
+#   - Engine RPM   = pulse count on the alternator W terminal scaled
+#                    by the alternator's pulleys-per-rev ratio.
+#
+# Both inputs come in opto-isolated to protect the ESP32 from the
+# dirty 12 V engine bus. See planning/hardware-deep-dive.md §200–201.
+#
+# Coolant temp + intake-air come in via the 1-Wire bus already
+# declared in temperature.yaml.
+
+binary_sensor:
+  - platform: gpio
+    id: engine_oil_pressure
+    name: "Engine oil pressure"
+    pin:
+      number: GPIO16
+      mode:
+        input: true
+        pullup: true
+      inverted: true   # opto pulls low when pressure present
+    filters:
+      # Cranking starts oil flow before the engine "runs"; require
+      # 2 s of stable pressure before declaring running. Idle drops
+      # below the switch threshold within ~ 200 ms when cut.
+      - delayed_on: 2s
+      - delayed_off: 500ms
+    on_press:
+      then:
+        - mqtt.publish:
+            topic: ${device_topic}/engine/running
+            payload: "1"
+            retain: true
+            qos: 1
+        - mqtt.publish:
+            topic: ${device_topic}/engine/oil_pressure
+            payload: "350.0"   # ~50 psi when present; refine with a real ADC
+            retain: true
+            qos: 1
+    on_release:
+      then:
+        - mqtt.publish:
+            topic: ${device_topic}/engine/running
+            payload: "0"
+            retain: true
+            qos: 1
+        - mqtt.publish:
+            topic: ${device_topic}/engine/oil_pressure
+            payload: "0.0"
+            retain: true
+            qos: 1
+
+# ─── Alternator W → RPM via pulse counter ─────────────────────────
+# The W terminal pulses once per alternator revolution. With a
+# typical 2.4:1 alternator-to-engine ratio (Yanmar 3JH4E spec),
+# each engine RPM ≈ 0.0167 alt pulses-per-second / 2.4. We measure
+# pulses over a 1 s window and scale.
+sensor:
+  - platform: pulse_counter
+    pin:
+      number: GPIO17
+      mode:
+        input: true
+        pullup: true
+    id: engine_rpm
+    name: "Engine RPM"
+    update_interval: 1s
+    state_topic: ${device_topic}/engine/rpm
+    accuracy_decimals: 0
+    filters:
+      # Alt-pulley ratio 2.4:1 — convert pulses-per-minute (the
+      # pulse_counter native unit) to engine RPM.
+      - multiply: 0.4167   # 1 / 2.4
+
+  # Engine-runtime accumulator: integrates "running" over time.
+  - platform: template
+    name: "Engine runtime"
+    id: engine_runtime_h
+    state_topic: ${device_topic}/engine/runtime_h
+    update_interval: 60s
+    accuracy_decimals: 1
+    lambda: |-
+      // Persisted across reboots via the global below.
+      return id(engine_runtime_global);
+    unit_of_measurement: h
+    icon: mdi:engine-outline
+
+globals:
+  - id: engine_runtime_global
+    type: float
+    restore_value: yes
+    initial_value: '0.0'
+
+interval:
+  # Tick the runtime accumulator every minute when oil-pressure says
+  # we're running. Stored as float hours; HA's history_stats integrates.
+  - interval: 60s
+    then:
+      - if:
+          condition:
+            binary_sensor.is_on: engine_oil_pressure
+          then:
+            - lambda: 'id(engine_runtime_global) += (60.0 / 3600.0);'
