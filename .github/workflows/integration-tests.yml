@@ -266,11 +266,25 @@ jobs:
         # so failures here are visible without hiding BDD/sim regressions.
         # `-rs` surfaces skip reasons so a silently-skipped test is
         # visible in the run summary.
+        id: ha-pytest
         working-directory: tests
         run: |
           set -o pipefail
           pytest test_bilge_alarm_minimal.py -v --tb=long -rs 2>&1 | tee /tmp/pytest-ha.log
           exit ${PIPESTATUS[0]}
+
+      - name: Echo HA-bridged failure tail as annotations
+        # Same pattern as the BDD step — make failures visible via the
+        # public check-runs annotations API.
+        if: failure() && steps.ha-pytest.conclusion == 'failure'
+        run: |
+          echo "===== last 80 lines of HA pytest output ====="
+          tail -80 /tmp/pytest-ha.log
+          echo "===== emitting annotations ====="
+          tail -30 /tmp/pytest-ha.log | while IFS= read -r line; do
+            clean=$(echo "$line" | sed 's/\x1b\[[0-9;]*m//g')
+            echo "::error::ha-pytest: $clean"
+          done
 
       - name: Confirm HA scenarios ran (not silently skipped)
         # The whole point of the HA service container is to actually
