@@ -210,12 +210,35 @@ jobs:
         # rate isn't great here so we cache the browser explicitly.
         run: python -m playwright install --with-deps chromium
 
-      - name: Run pytest (BDD + simulator integration)
-        # Excludes the Playwright suite so a real BDD/simulator
-        # regression isn't tangled up with a browser flake. Both
-        # steps gate the workflow now that the harness is stable.
+      - name: Diagnostic — HA + MQTT state
+        # Help future-me (or another agent) diagnose without admin log
+        # access. List the entities HA knows about and the retained
+        # discovery topics. Cheap, only runs in CI.
+        run: |
+          echo "===== HA states (boat-related) ====="
+          curl -s -H "Authorization: Bearer $HA_TOKEN" http://localhost:8123/api/states \
+            | python -c "import json,sys;
+data = json.load(sys.stdin)
+boat = [s for s in data if 'boat' in s.get('entity_id','') or 'evenkeel' in s.get('entity_id','')]
+print(f'{len(boat)} boat-related entities of {len(data)} total')
+for s in boat[:30]:
+    print(f\"  {s['entity_id']:55} = {s.get('state','?')[:40]}\")"
+          echo "===== Mosquitto retained discovery topics ====="
+          docker exec mosquitto mosquitto_sub -h localhost -t 'homeassistant/#' -W 2 -v 2>/dev/null | head -20 || echo "(none)"
+          echo "==============================="
+
+      - name: Run pytest (BDD + simulator integration, no HA)
+        # Excludes both the Playwright suite and the HA-bridged
+        # bilge_alarm_minimal scenarios so a real BDD/simulator
+        # regression isn't tangled up with HA setup wobbles.
         working-directory: tests
-        run: pytest --ignore=test_card_e2e.py -v --tb=short
+        run: pytest --ignore=test_card_e2e.py --ignore=test_bilge_alarm_minimal.py -v --tb=short
+
+      - name: Run pytest (HA-bridged scenarios)
+        # Iteration 4B: bilge MQTT → HA binary_sensor flips. Isolated
+        # so failures here are visible without hiding BDD/sim regressions.
+        working-directory: tests
+        run: pytest test_bilge_alarm_minimal.py -v --tb=long
 
       - name: Run pytest (Playwright e2e)
         # Real-browser regression suite for the boat card, against
