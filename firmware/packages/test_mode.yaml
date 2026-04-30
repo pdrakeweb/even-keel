@@ -1,0 +1,103 @@
+# Test-mode injection package (live-integration test harness).
+#
+# When this package is included AND the boat receives a signed
+# "enable" message on boat/hunter41/test/enable, the firmware swaps
+# real sensor reads for values published on boat/hunter41/test/<sensor>.
+# This is what lets the LiveIntegrationAdapter (tests/adapters/live.py)
+# poke a deployed boat from CI without anyone pouring water on the
+# bilge switch.
+#
+# THIS FILE IS NOT INCLUDED IN boat-mon.yaml BY DEFAULT.
+# Production builds compile without an injection surface. Bring it in
+# for dev/test builds via a sibling YAML, e.g.:
+#
+#     # firmware/boat-mon-test.yaml
+#     packages:
+#       base:        !include packages/base.yaml
+#       network:     !include packages/network.yaml
+#       …
+#       test_mode:   !include packages/test_mode.yaml
+#
+# SECURITY MODEL — see planning/tdd-architecture.md §C "Firmware test
+# mode" for the full rationale:
+#
+# 1. Production binaries do not include this file at all.
+# 2. The "enable" topic carries an HMAC-SHA256 signature of a nonce +
+#    timestamp; firmware verifies against `secrets.test_mode_hmac_key`.
+#    Replays past 60 seconds are rejected. (HMAC verification is
+#    stubbed below; lands when the live adapter ships in Phase 6.)
+# 3. Test mode auto-disables after 10 minutes of no keepalive — a
+#    fail-safe so a forgotten enable doesn't silently leave the boat
+#    accepting fake sensor values forever.
+# 4. While test mode is on, an HA notification ("BOAT IS IN TEST MODE")
+#    fires every minute so Pete and Kelly can't miss it.
+#
+# Each iteration that lights up a sensor (bilge, leak, AIS) extends
+# this package with one more `mqtt.subscribe → mqtt.publish` block
+# that fans test/<sensor> through to the canonical telemetry topic,
+# behind the `test_mode_active` global gate.
+
+globals:
+  - id: test_mode_active
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
+
+  - id: test_mode_last_keepalive_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+
+# 10-minute keepalive watchdog. If no fresh enable comes in within
+# the window, force test mode off.
+interval:
+  - interval: 30s
+    then:
+      - lambda: |-
+          if (id(test_mode_active)) {
+            uint32_t now = millis();
+            if (now - id(test_mode_last_keepalive_ms) > 600000) {
+              ESP_LOGW("test_mode", "keepalive expired - disabling");
+              id(test_mode_active) = false;
+            }
+          }
+
+mqtt:
+  on_message:
+    # Enable / disable. Real impl parses JSON, validates ts within
+    # 60 s, recomputes HMAC-SHA256(nonce|ts, secret) and compares
+    # constant-time. Stubbed here as a literal "ON"/"OFF" toggle.
+    - topic: ${device_topic}/test/enable
+      then:
+        - lambda: |-
+            std::string body(x);
+            if (body == "ON" || body == "on" || body == "1") {
+              id(test_mode_active) = true;
+              id(test_mode_last_keepalive_ms) = millis();
+              ESP_LOGW("test_mode", "ENABLED - fake sensor injection live");
+            } else {
+              id(test_mode_active) = false;
+              ESP_LOGI("test_mode", "disabled");
+            }
+
+    # Keepalive — bumps the watchdog window without re-running the
+    # auth handshake. Sent every ~60 s by the active LiveAdapter.
+    - topic: ${device_topic}/test/keepalive
+      then:
+        - lambda: |-
+            if (id(test_mode_active)) {
+              id(test_mode_last_keepalive_ms) = millis();
+            }
+
+    # Per-sensor injection blocks land here as the harness lights up
+    # each scenario. Pattern:
+    #
+    #   - topic: ${device_topic}/test/<sensor>
+    #     then:
+    #       - if:
+    #           condition: lambda 'return id(test_mode_active);'
+    #           then:
+    #             - mqtt.publish:
+    #                 topic: ${device_topic}/<canonical>/<topic>
+    #                 payload: !lambda 'return std::string(x);'
+    #                 retain: true

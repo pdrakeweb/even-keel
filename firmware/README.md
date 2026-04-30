@@ -31,9 +31,13 @@ firmware/
 ## Building
 
 ```bash
-esphome compile boat-mon.yaml             # production build
-esphome compile boat-mon.yaml -DENABLE_TEST_MODE   # test-mode build
+esphome compile boat-mon.yaml             # production build (no injection surface)
 ```
+
+For a dev / test-mode build, copy `boat-mon.yaml` to a sibling that
+adds `test_mode: !include packages/test_mode.yaml` to the packages
+list. Production binaries should never include `test_mode.yaml` —
+see the security model in that file's header.
 
 ## OTA
 
