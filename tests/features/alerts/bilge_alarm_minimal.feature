@@ -21,3 +21,17 @@ Feature: Bilge water flips the HA binary_sensor through MQTT discovery
     When the bilge float switch reports dry
     Then within 5 seconds MQTT topic "boat/hunter41/bilge/water_detected" equals "0"
     And within 30 seconds HA entity "binary_sensor.boat_bilge_water_detected" equals "off"
+
+  @phase6 @alerts @critical @rollup
+  Scenario: Bilge wet flips the boat_bilge_status template rollup to critical
+    When the bilge float switch reports water
+    Then within 30 seconds HA entity "binary_sensor.boat_bilge_water_detected" equals "on"
+    And within 30 seconds HA entity "sensor.boat_bilge_status" equals "critical"
+
+  @phase6 @alerts @rollup
+  Scenario: Clearing the bilge restores boat_bilge_status to ok
+    Given the bilge float switch reports water
+    And within 30 seconds HA entity "sensor.boat_bilge_status" equals "critical"
+    When the bilge float switch reports dry
+    Then within 30 seconds HA entity "binary_sensor.boat_bilge_water_detected" equals "off"
+    And within 30 seconds HA entity "sensor.boat_bilge_status" equals "ok"
