@@ -264,8 +264,32 @@ jobs:
       - name: Run pytest (HA-bridged scenarios)
         # Iteration 4B: bilge MQTT → HA binary_sensor flips. Isolated
         # so failures here are visible without hiding BDD/sim regressions.
+        # `-rs` surfaces skip reasons so a silently-skipped test is
+        # visible in the run summary.
         working-directory: tests
-        run: pytest test_bilge_alarm_minimal.py -v --tb=long
+        run: |
+          set -o pipefail
+          pytest test_bilge_alarm_minimal.py -v --tb=long -rs 2>&1 | tee /tmp/pytest-ha.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Confirm HA scenarios ran (not silently skipped)
+        # The whole point of the HA service container is to actually
+        # exercise the bilge → HA path. If pytest skipped — usually
+        # because HA_URL/HA_TOKEN didn't propagate — the workflow
+        # technically passes but the assertion never happens. Catch
+        # that as a real failure here.
+        run: |
+          if grep -E "(SKIPPED|skipped)" /tmp/pytest-ha.log >/dev/null; then
+            echo "::error::HA-bridged scenarios were skipped — HA env vars not propagating to pytest?"
+            tail -20 /tmp/pytest-ha.log
+            exit 1
+          fi
+          if ! grep -E "passed" /tmp/pytest-ha.log >/dev/null; then
+            echo "::error::HA-bridged step exited 0 but no 'passed' line found in output"
+            cat /tmp/pytest-ha.log
+            exit 1
+          fi
+          tail -3 /tmp/pytest-ha.log
 
       - name: Run pytest (Playwright e2e)
         # Real-browser regression suite for the boat card, against
