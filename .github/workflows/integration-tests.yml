@@ -13,12 +13,14 @@ on:
       - "tests/**"
       - "simulator/**"
       - "custom-card/**"
+      - "home-assistant/**"
       - ".github/workflows/integration-tests.yml"
   pull_request:
     paths:
       - "tests/**"
       - "simulator/**"
       - "custom-card/**"
+      - "home-assistant/**"
       - ".github/workflows/integration-tests.yml"
   workflow_dispatch:
 
@@ -52,6 +54,75 @@ jobs:
           echo "::error::mosquitto did not come up in time"
           docker logs mosquitto
           exit 1
+
+      - name: Start Home Assistant
+        # Spins up the production HA Docker image against a copy of
+        # the home-assistant/ tree with .storage stripped (so HA's
+        # onboarding flow runs fresh). The same configuration.yaml +
+        # packages/* the boat dashboard uses also drives this CI
+        # instance — the Captain's Glance template sensor is real,
+        # not mocked, so when bilge_alarm.feature flips it, that's
+        # the actual production logic firing.
+        run: |
+          mkdir -p /tmp/ha-config
+          cp -r home-assistant/. /tmp/ha-config/
+          rm -rf /tmp/ha-config/.storage  # fresh user storage
+          cp /tmp/ha-config/secrets.yaml.example /tmp/ha-config/secrets.yaml
+          sed -i 's|REPLACE_ME|ci-test-secret-12345|g' /tmp/ha-config/secrets.yaml
+
+          docker run -d --name homeassistant \
+            --network host \
+            -v /tmp/ha-config:/config \
+            -e TZ=America/Detroit \
+            ghcr.io/home-assistant/home-assistant:stable
+
+          # HA cold-start takes ~45 s. Poll up to 120 s.
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8123/manifest.json || echo "000")
+            if [ "$code" = "200" ]; then
+              echo "HA ready (after ${i}×2s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Home Assistant did not come up in time"
+          docker logs homeassistant | tail -100
+          exit 1
+
+      - name: Bootstrap HA onboarding + access token
+        id: ha-bootstrap
+        run: |
+          # Step 1 — create the owner user. Onboarding endpoints are
+          # unauthenticated only on a freshly-installed HA instance.
+          USER_RES=$(curl -s -X POST http://localhost:8123/api/onboarding/users \
+            -H "Content-Type: application/json" \
+            -d '{
+              "client_id":"http://localhost:8123/",
+              "name":"CI Test",
+              "username":"ci",
+              "password":"ci-test-12345",
+              "language":"en"
+            }')
+          AUTH_CODE=$(echo "$USER_RES" | python -c "import json,sys;print(json.load(sys.stdin).get('auth_code',''))")
+          if [ -z "$AUTH_CODE" ]; then
+            echo "::error::onboarding/users failed: $USER_RES"
+            exit 1
+          fi
+
+          # Step 2 — exchange the auth code for an access token.
+          TOKEN_RES=$(curl -s -X POST http://localhost:8123/auth/token \
+            -d "client_id=http://localhost:8123/&grant_type=authorization_code&code=$AUTH_CODE")
+          HA_TOKEN=$(echo "$TOKEN_RES" | python -c "import json,sys;print(json.load(sys.stdin).get('access_token',''))")
+          if [ -z "$HA_TOKEN" ]; then
+            echo "::error::token exchange failed: $TOKEN_RES"
+            exit 1
+          fi
+
+          # Mask before exporting; GH Actions auto-redacts in logs.
+          echo "::add-mask::$HA_TOKEN"
+          echo "HA_TOKEN=$HA_TOKEN" >> "$GITHUB_ENV"
+          echo "HA_URL=http://localhost:8123" >> "$GITHUB_ENV"
+          echo "HA bootstrap complete"
 
       - uses: actions/setup-python@v5
         with:
@@ -104,3 +175,7 @@ jobs:
       - name: Mosquitto logs (on failure)
         if: failure()
         run: docker logs mosquitto
+
+      - name: Home Assistant logs (on failure)
+        if: failure()
+        run: docker logs homeassistant 2>&1 | tail -200 || true

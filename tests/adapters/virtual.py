@@ -21,6 +21,7 @@ producer: it publishes exactly the values the test asks it to.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import pathlib
@@ -29,6 +30,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 import aiomqtt
+import httpx
 from evenkeel_sim.sensors import (
     AIS_TARGETS_TOPIC,
     LWT_TOPIC,
@@ -60,18 +62,31 @@ class VirtualAdapter:
         broker: str | None = None,
         port: int | None = None,
         client_id: str = "evenkeel-tests",
+        ha_url: str | None = None,
+        ha_token: str | None = None,
     ) -> None:
         self.broker = broker or os.environ.get("MQTT_BROKER", "localhost")
         self.port = port or int(os.environ.get("MQTT_PORT", "1883"))
         self.client_id = client_id
+        # HA REST is optional. When unset, entity_state /
+        # wait_for_notification raise a clear NotImplementedError so
+        # tests that need HA can skip rather than silently misbehave.
+        self.ha_url = (ha_url or os.environ.get("HA_URL") or "").rstrip("/")
+        self.ha_token = ha_token or os.environ.get("HA_TOKEN") or ""
 
         self._client: aiomqtt.Client | None = None
         self._listener: asyncio.Task[None] | None = None
         self._latest: dict[str, bytes] = {}
         self._waiters: dict[str, list[_Waiter]] = defaultdict(list)
         self._connected = asyncio.Event()
+        self._ha: httpx.AsyncClient | None = None
 
     # ─── Lifecycle ───────────────────────────────────────────────
+    @property
+    def has_ha(self) -> bool:
+        """True if HA REST is configured (URL + token present)."""
+        return bool(self.ha_url and self.ha_token)
+
     async def startup(self) -> None:
         log.info("VirtualAdapter connecting to %s:%s", self.broker, self.port)
         self._client = aiomqtt.Client(
@@ -80,6 +95,13 @@ class VirtualAdapter:
             identifier=self.client_id,
         )
         await self._client.__aenter__()
+        if self.has_ha:
+            log.info("VirtualAdapter using HA REST at %s", self.ha_url)
+            self._ha = httpx.AsyncClient(
+                base_url=self.ha_url,
+                headers={"Authorization": f"Bearer {self.ha_token}"},
+                timeout=10.0,
+            )
         # Subscribe to everything under the boat tree so retained payloads
         # arrive immediately and live ones queue up for waiters.
         await self._client.subscribe("boat/#", qos=1)
@@ -104,6 +126,11 @@ class VirtualAdapter:
                 await self._client.__aexit__(None, None, None)
             except Exception:  # noqa: BLE001
                 log.exception("aiomqtt shutdown raised; ignoring")
+        if self._ha:
+            try:
+                await self._ha.aclose()
+            except Exception:  # noqa: BLE001
+                log.exception("httpx shutdown raised; ignoring")
         self._connected.clear()
 
     async def _listen(self) -> None:
@@ -243,18 +270,71 @@ class VirtualAdapter:
     ) -> None:
         raise NotImplementedError("GPS track replay arrives in Phase 8")
 
-    # ─── Observations ───────────────────────────────────────────
-    async def entity_state(self, entity_id: str) -> str:  # noqa: ARG002
-        # HA REST integration arrives in Iteration 2E. For now, telemetry
-        # tests assert directly on MQTT and skip HA entity assertions.
-        raise NotImplementedError("HA REST observation arrives in Iteration 2E")
+    # ─── Observations (HA REST) ─────────────────────────────────
+    async def entity_state(self, entity_id: str) -> str:
+        """Read an HA entity's current state via /api/states/<entity_id>.
+
+        Raises NotImplementedError if HA isn't configured (so callers
+        can skip the test rather than silently fail). Raises an
+        httpx.HTTPStatusError if HA returns a non-2xx (entity unknown,
+        token invalid, etc.).
+        """
+        if not self._ha:
+            raise NotImplementedError(
+                "HA REST not configured (HA_URL + HA_TOKEN env vars unset)"
+            )
+        r = await self._ha.get(f"/api/states/{entity_id}")
+        r.raise_for_status()
+        return r.json()["state"]
+
+    async def wait_for_entity_state(
+        self,
+        entity_id: str,
+        expected: str,
+        timeout: float = 30.0,
+        poll_interval: float = 0.5,
+    ) -> str:
+        """Poll HA until `entity_id` reports `expected`, or timeout.
+
+        Polling REST is simpler than the WebSocket subscription and
+        good enough at HA's 1-Hz state-update cadence. Returns the
+        observed state on success; raises TimeoutError otherwise.
+        """
+        if not self._ha:
+            raise NotImplementedError(
+                "HA REST not configured (HA_URL + HA_TOKEN env vars unset)"
+            )
+        deadline = asyncio.get_running_loop().time() + timeout
+        last: str = ""
+        while asyncio.get_running_loop().time() < deadline:
+            try:
+                last = await self.entity_state(entity_id)
+                if last == expected:
+                    return last
+            except httpx.HTTPStatusError:
+                # 404 while HA hasn't materialized the entity yet —
+                # keep polling until timeout.
+                pass
+            await asyncio.sleep(poll_interval)
+        raise TimeoutError(
+            f"Timed out after {timeout}s waiting for {entity_id} == {expected!r}; "
+            f"last seen: {last!r}"
+        )
 
     async def wait_for_notification(  # noqa: ARG002
         self,
         predicate: Callable[[dict], bool],
         timeout: float,
     ) -> dict:
-        raise NotImplementedError("HA notification observation arrives in Iteration 2E")
+        # HA WebSocket persistent_notification subscription. Unblocks
+        # the bilge_alarm.feature notification beats (Pete + Kelly
+        # receive a push). Lands when push integrations are wired up
+        # in HA — for now, test the entity-state half via
+        # wait_for_entity_state().
+        raise NotImplementedError(
+            "HA notification observation lands with the Pushover/Sonos "
+            "integration wiring in tests/docker/homeassistant"
+        )
 
     async def mqtt_last(self, topic: str) -> bytes:
         await self._connected.wait()
