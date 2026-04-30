@@ -37,3 +37,4 @@ packages:
   temperature: !include packages/temperature.yaml
   power:       !include packages/power.yaml
   engine:      !include packages/engine.yaml
+  ais:         !include packages/ais.yaml

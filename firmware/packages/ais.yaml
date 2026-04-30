@@ -1,0 +1,41 @@
+# AIS UART receiver + TCP stream-server (Phase 1 — boat node MVP).
+#
+# A Wegmatt dAISy HAT feeds raw AIVDM sentences into the ESP32 over
+# 3.3 V TTL UART at 38400 baud (3 wires: 3V3, GND, dAISy-TX → ESP-RX).
+# We don't decode the sentences on the boat — just expose them on a
+# local TCP socket. The cloud relay subscribes from the boat LAN
+# (or from home over WireGuard) and re-emits the AIVDM stream to
+# aisstream.io and the local AISDispatcher in HA.
+#
+# UART RX is on GPIO5 — pinned away from the strapping pins (0, 3,
+# 45, 46) and the bilge GPIO1 / buzzer GPIO2. No TX needed for
+# receive-only operation.
+#
+# stream_server is a third-party ESPHome external component
+# (oxan/esphome-stream-server). It opens a TCP listener and pipes
+# bytes bidirectionally between any connected client and the named
+# UART. CI's esphome/build-action fetches the external component
+# from GitHub at build time.
+#
+# Frame-rate health metrics live in the cloud relay (which sees the
+# full sentence stream). Adding a frame counter here would require
+# duplicating UART consumption and risks double-reading the bus,
+# starving stream_server's clients.
+
+external_components:
+  - source: github://oxan/esphome-stream-server
+    components: [stream_server]
+
+uart:
+  - id: ais_uart
+    rx_pin:
+      number: GPIO5
+      mode:
+        input: true
+        pullup: true
+    baud_rate: 38400
+    rx_buffer_size: 512
+
+stream_server:
+  uart_id: ais_uart
+  port: 6638
