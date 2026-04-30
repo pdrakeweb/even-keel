@@ -275,19 +275,22 @@ jobs:
 
       - name: Echo HA-bridged failure tail as annotations
         # Same pattern as the BDD step — make failures visible via the
-        # public check-runs annotations API. Emits the WHOLE log if
-        # short enough; pytest output for 4 scenarios is small.
+        # public check-runs annotations API. GitHub Actions caps the
+        # annotation count per type per workflow run (~10 ::error::
+        # lines), so emit the whole log as ONE multi-line annotation
+        # using %0A-encoded newlines. The cap on length per annotation
+        # is generous (~64 KB).
         if: failure() && steps.ha-pytest.conclusion == 'failure'
         run: |
           echo "===== full HA pytest output (line count: $(wc -l < /tmp/pytest-ha.log)) ====="
           cat /tmp/pytest-ha.log
-          echo "===== emitting annotations (last 80 lines) ====="
-          tail -80 /tmp/pytest-ha.log | while IFS= read -r line; do
-            clean=$(echo "$line" | sed 's/\x1b\[[0-9;]*m//g')
-            # Skip empty lines so we don't emit empty annotations.
-            [ -z "$(echo "$clean" | tr -d '[:space:]')" ] && continue
-            echo "::error::ha-pytest: $clean"
-          done
+          # Strip ANSI, then encode raw \n as %0A so one ::error::
+          # annotation carries the full multi-line tail. Per-annotation
+          # cap is generous (~64 KB); 200 lines fit easily.
+          encoded=$(tail -200 /tmp/pytest-ha.log \
+            | sed 's/\x1b\[[0-9;]*m//g' \
+            | python3 -c "import sys; print(sys.stdin.read().replace('\n', '%0A'))")
+          echo "::error title=HA pytest failure::${encoded}"
 
       - name: Confirm HA scenarios ran (not silently skipped)
         # The whole point of the HA service container is to actually
