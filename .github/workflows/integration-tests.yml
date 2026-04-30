@@ -275,14 +275,17 @@ jobs:
 
       - name: Echo HA-bridged failure tail as annotations
         # Same pattern as the BDD step — make failures visible via the
-        # public check-runs annotations API.
+        # public check-runs annotations API. Emits the WHOLE log if
+        # short enough; pytest output for 4 scenarios is small.
         if: failure() && steps.ha-pytest.conclusion == 'failure'
         run: |
-          echo "===== last 80 lines of HA pytest output ====="
-          tail -80 /tmp/pytest-ha.log
-          echo "===== emitting annotations ====="
-          tail -30 /tmp/pytest-ha.log | while IFS= read -r line; do
+          echo "===== full HA pytest output (line count: $(wc -l < /tmp/pytest-ha.log)) ====="
+          cat /tmp/pytest-ha.log
+          echo "===== emitting annotations (last 80 lines) ====="
+          tail -80 /tmp/pytest-ha.log | while IFS= read -r line; do
             clean=$(echo "$line" | sed 's/\x1b\[[0-9;]*m//g')
+            # Skip empty lines so we don't emit empty annotations.
+            [ -z "$(echo "$clean" | tr -d '[:space:]')" ] && continue
             echo "::error::ha-pytest: $clean"
           done
 
