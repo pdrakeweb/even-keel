@@ -1,0 +1,10 @@
+# Wokwi simulator config for the BoatMon-1 firmware.
+#
+# Paths are relative to this file (tests/wokwi/wokwi.toml). ESPHome
+# writes its build output to <yaml-dir>/.esphome/build/<device-name>/...
+# so when boat-mon.yaml lives in firmware/, the artifacts end up at
+# firmware/.esphome/build/boatmon-1/.pioenvs/boatmon-1/.
+[wokwi]
+version = 1
+firmware = "../../firmware/.esphome/build/boatmon-1/.pioenvs/boatmon-1/firmware.factory.bin"
+elf      = "../../firmware/.esphome/build/boatmon-1/.pioenvs/boatmon-1/firmware.elf"

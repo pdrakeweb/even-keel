@@ -1,0 +1,35 @@
+# BoatMon-1 — primary ESP32-S3 on the Hunter 41DS.
+#
+# Iteration 2 (Phase 1) scope: minimal viable boot. WiFi + MQTT + a few
+# health sensors that publish to the canonical boat/hunter41/* topics.
+# Real sensors (BME280, INA226, 1-wire, AIS UART, Victron BLE, etc.)
+# arrive in later phases — see firmware/README.md for the layout.
+#
+# Topics are the contract shared with the Python simulator
+# (simulator/src/evenkeel_sim/sensors.py::TOPIC_MAP). Anything new on
+# either side of the contract should land in both.
+substitutions:
+  device_name: boatmon-1
+  friendly_name: "BoatMon-1"
+  device_topic: boat/hunter41
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  comment: "EvenKeel BoatMon — Hunter 41DS"
+  on_boot:
+    priority: -100
+    then:
+      - logger.log:
+          level: INFO
+          format: "BoatMon-1 booted"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+packages:
+  base:    !include packages/base.yaml
+  network: !include packages/network.yaml
+  health:  !include packages/health.yaml

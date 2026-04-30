@@ -1,0 +1,39 @@
+# Device health: WiFi RSSI, uptime, free heap.
+#
+# RSSI + uptime publish to the canonical boat/hunter41/health/* topics
+# the simulator and HA template sensors already consume. Free heap is
+# extra device telemetry — useful for diagnostics, not on dashboards.
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi signal"
+    id: rssi
+    update_interval: 30s
+    state_topic: ${device_topic}/health/rssi
+    accuracy_decimals: 0
+    expire_after: 5min
+
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_s
+    type: seconds
+    update_interval: 30s
+    state_topic: ${device_topic}/health/uptime_s
+    accuracy_decimals: 0
+    expire_after: 5min
+
+  - platform: internal_temperature
+    name: "Internal SoC temperature"
+    id: soc_temp
+    update_interval: 60s
+    state_topic: ${device_topic}/health/soc_temp_c
+    accuracy_decimals: 1
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP address"
+      state_topic: ${device_topic}/health/ip
+    ssid:
+      name: "Connected SSID"
+      state_topic: ${device_topic}/health/ssid

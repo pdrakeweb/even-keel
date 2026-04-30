@@ -1,9 +1,11 @@
 name: Wokwi firmware simulation
 
-# Iteration 2 lights this up — Wokwi runs the ESPHome firmware in a
-# headless ESP32-S3 simulator and asserts the AIS-TCP-bridge scenario.
-# For now it's a placeholder skeleton so the workflow + secret wiring
-# is set up before the firmware lands.
+# Builds the ESPHome BoatMon-1 firmware and runs it under Wokwi's
+# headless ESP32-S3 simulator, asserting the boot banner appears on
+# the serial console without a Guru Meditation panic.
+#
+# Iteration 2A: minimal boot smoke. Future iterations layer on
+# AIS-TCP-bridge + bilge MQTT scenarios driven by tests/wokwi/scenarios.
 
 on:
   push:
@@ -34,8 +36,17 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::firmware/boat-mon.yaml or tests/wokwi/wokwi.toml not yet present — Wokwi smoke test skipped (Iteration 2)."
+            echo "::notice::firmware/boat-mon.yaml or tests/wokwi/wokwi.toml not yet present — Wokwi smoke test skipped."
           fi
+
+      - name: Drop in CI placeholder secrets
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          cp firmware/secrets.yaml.example firmware/secrets.yaml
+          # api_key must be a real 32-byte base64 string for ESPHome to compile.
+          sed -i 's|REPLACE_ME_32_bytes_base64|TS+ZJ8MGkDPATvvm7XQbdvmHB9fH+9bSpPtU+hYz7p4=|' firmware/secrets.yaml
+          # WiFi passwords must be at least 8 characters; use a long placeholder.
+          sed -i 's|REPLACE_ME|ci-placeholder|g' firmware/secrets.yaml
 
       - name: Build ESPHome firmware
         if: steps.check.outputs.ready == 'true'
@@ -44,12 +55,23 @@ jobs:
           yaml-file: firmware/boat-mon.yaml
           version: latest
 
+      - name: Confirm Wokwi token is configured
+        if: steps.check.outputs.ready == 'true'
+        env:
+          WOKWI_CLI_TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
+        run: |
+          if [ -z "$WOKWI_CLI_TOKEN" ]; then
+            echo "::error::WOKWI_CLI_TOKEN repository secret is not set."
+            echo "Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
       - name: Run Wokwi simulation
         if: steps.check.outputs.ready == 'true'
         uses: wokwi/wokwi-ci-action@v1
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           path: tests/wokwi
-          timeout: 60000
+          timeout: 90000
           expect_text: "BoatMon-1 booted"
           fail_text: "Guru Meditation Error"

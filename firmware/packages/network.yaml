@@ -1,0 +1,27 @@
+# MQTT client.
+#
+# Birth/will messages publish to the same topic the simulator uses for
+# its LWT (boat/hunter41/status/online) so HA's online-vs-offline state
+# is the same regardless of source. Discovery is OFF here — the canonical
+# entities live in home-assistant/packages/* as MQTT template sensors,
+# matching the simulator. (We don't want both firmware and simulator
+# fighting over discovery payloads.)
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  client_id: ${device_name}
+  discovery: false
+  topic_prefix: ${device_topic}/_esphome
+  birth_message:
+    topic: ${device_topic}/status/online
+    payload: "ON"
+    retain: true
+  will_message:
+    topic: ${device_topic}/status/online
+    payload: "OFF"
+    retain: true
+  on_message:
+    # Reserved for future control-plane subscriptions (test-mode injection,
+    # OTA mode toggle, etc.). Empty list keeps schema valid.
+    []
