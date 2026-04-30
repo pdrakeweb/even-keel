@@ -24,6 +24,7 @@ if sys.platform == "win32":
 # decorator runs. Importing the step modules at conftest scope ensures
 # every @given/@when/@then is registered before any scenario executes,
 # regardless of which test_*.py module discovers the .feature file.
+from steps.battery_steps import *  # noqa: F401, F403
 from steps.bilge_steps import *  # noqa: F401, F403
 from steps.common_steps import *  # noqa: F401, F403
 
